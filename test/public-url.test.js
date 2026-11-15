@@ -27,7 +27,7 @@ const wait = async () => {};
 
 test('every provider fleet can share a port through says how long the link lasts', () => {
   const sharing = Object.entries(providers).filter(([, p]) => typeof p.publicUrl === 'function').map(([name]) => name).sort();
-  expect(sharing).toEqual(['anona', 'blaxel', 'daytona', 'e2b', 'freestyle', 'morph', 'tensorlake', 'upstash', 'vercel']);
+  expect(sharing).toEqual(['anona', 'blaxel', 'daytona', 'e2b', 'freestyle', 'morph', 'paperpod', 'railway', 'tensorlake', 'upstash', 'vercel']);
 });
 
 describe('e2b', () => {

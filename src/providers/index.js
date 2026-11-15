@@ -14,8 +14,10 @@ import upstash from './upstash.js';
 import tensorlake from './tensorlake.js';
 import freestyle from './freestyle.js';
 import langsmith from './langsmith.js';
+import paperpod from './paperpod.js';
+import railway from './railway.js';
 import fleetpod from './fleetpod.js';
 import demo from './demo.js';
 
 // Working: daytona, blaxel. Blocked (cannot be tested yet): see `blocked` in the file. Untested: all the others.
-export const PROVIDERS = { boat, isorun, e2b, daytona, anona, hopx, runloop, blaxel, vercel, sprites, morph, upstash, tensorlake, freestyle, langsmith, fleetpod, demo };
+export const PROVIDERS = { boat, isorun, e2b, daytona, anona, hopx, runloop, blaxel, vercel, sprites, morph, upstash, tensorlake, freestyle, langsmith, paperpod, railway, fleetpod, demo };

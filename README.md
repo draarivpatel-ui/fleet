@@ -135,3 +135,7 @@ Add one file in `src/providers/` that exports `label`, `keyHeader`, `priceSource
 ## License
 
 MIT
+
+## Git hooks
+
+`bun install` (or `npm install`) points git at `.githooks/` through the `prepare` script. `pre-commit` checks your changes and `pre-push` runs the tests. To skip either once, add `--no-verify`. To set up by hand: `git config core.hooksPath .githooks`.

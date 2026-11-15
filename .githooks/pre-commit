@@ -1,0 +1,5 @@
+#!/bin/sh
+# Syntax-check staged JavaScript before every commit. Skip with: git commit --no-verify
+for f in $(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|mjs)$'); do
+  bun build "$f" --target=browser --outdir=/dev/null >/dev/null 2>&1 || { echo "syntax error in $f"; bun build "$f" --target=browser --outdir=/dev/null 2>&1 | head -10; exit 1; }
+done

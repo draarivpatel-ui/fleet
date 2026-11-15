@@ -1,0 +1,10 @@
+#!/bin/sh
+# Run the tests before every push. Skip with: git push --no-verify
+# test/browserpod.test.js runs the pod's runner script, which calls `setsid` (util-linux).
+# macOS has no setsid, so those tests cannot pass there; CI (Ubuntu) runs them.
+if command -v setsid >/dev/null 2>&1; then
+  bun test
+else
+  echo "pre-push: no setsid on this machine, skipping test/browserpod.test.js (CI runs it)"
+  bun test $(ls test/*.test.js | grep -v browserpod)
+fi

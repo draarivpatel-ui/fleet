@@ -1,0 +1,5 @@
+#!/bin/sh
+# Run the tests before every push. Skip with: git push --no-verify
+# test/browserpod.test.js drives an interactive login shell, so rc-file output
+# (for example a shell prompt tool's warning) breaks it. CI runs it on a clean box.
+bun test $(ls test/*.test.js | grep -v browserpod)

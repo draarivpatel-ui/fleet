@@ -30,3 +30,17 @@ test('every shell loads Flisk Analytics in <head>, and the CSP allows its script
     expect(csp).toMatch(/connect-src [^;]*https:\/\/flisk\.sh/);
   }
 });
+
+test('the pod API answers browser calls from practice.flisk.si and from no other site', async () => {
+  const pre = await handle(new Request('https://fleet.test/v1/pods', { method: 'OPTIONS', headers: { origin: 'https://practice.flisk.si', 'access-control-request-method': 'POST', 'access-control-request-headers': 'authorization,content-type,x-e2b-key' } }), {});
+  expect(pre.status).toBe(204);
+  expect(pre.headers.get('access-control-allow-origin')).toBe('https://practice.flisk.si');
+  expect(pre.headers.get('access-control-allow-headers')).toContain('x-e2b-key');
+  const post = await handle(new Request('https://fleet.test/v1/pods', { method: 'POST', headers: { origin: 'https://practice.flisk.si' }, body: '{}' }), {});
+  expect(post.status).toBe(401);
+  expect(post.headers.get('access-control-allow-origin')).toBe('https://practice.flisk.si');
+  const other = await handle(new Request('https://fleet.test/v1/pods', { method: 'OPTIONS', headers: { origin: 'https://evil.example' } }), {});
+  expect(other.headers.get('access-control-allow-origin')).toBeNull();
+  const cabinet = await handle(new Request('https://fleet.test/console', { headers: { origin: 'https://practice.flisk.si' } }), {});
+  expect(cabinet.headers.get('access-control-allow-origin')).toBeNull();
+});

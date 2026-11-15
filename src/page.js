@@ -304,8 +304,8 @@ ${laneArt(prices)}
 </section>
 
 <div class="steps">
-<div><span class="m">01 / Sign in</span><b>Get a fleet key</b><span>With GitHub, in the cabinet.</span></div>
-<div><span class="m">02 / Connect</span><b>Your own provider</b><span>Paste a ${esc(prices.filter((p) => p.status === 'working').map((p) => p.label).join(' or '))} key once. ${more} more are built and waiting for tests.</span></div>
+<div><span class="m">01 / Sign in</span><b>Get a fleet key</b><span>With GitHub, in the cabinet. <a href="/console?section=keys">Get your key &gt;&gt;&gt;</a></span></div>
+<div><span class="m">02 / Connect</span><b>Your own provider</b><span><a href="/console?section=providers">Connect one</a>: paste a ${esc(prices.filter((p) => p.status === 'working').map((p) => p.label).join(' or '))} key once. ${more} more are built and waiting for tests.</span></div>
 <div><span class="m">03 / Start a pod</span><b>One call</b><span>POST /v1/pods, or pod_create over MCP.</span></div>
 <div><span class="m">04 / Run, then stop</span><b>Stdout and exit code</b><span>A pod that's gone answers 410.</span></div>
 </div>

@@ -10,6 +10,14 @@ test('HEAD works like GET without a body', async () => {
   }
 });
 
+test('the CSP allows the flisk.si org bar icons in img-src', async () => {
+  for (const path of ['/', '/docs']) {
+    const res = await handle(new Request(`https://fleet.test${path}`), {});
+    const csp = res.headers.get('content-security-policy');
+    expect(csp).toMatch(/img-src [^;]*https:\/\/flisk\.si/);
+  }
+});
+
 test('every shell loads Flisk Analytics in <head>, and the CSP allows its script and beacon', async () => {
   for (const path of ['/', '/docs', '/podlytics']) {
     const res = await handle(new Request(`https://fleet.test${path}`), {});

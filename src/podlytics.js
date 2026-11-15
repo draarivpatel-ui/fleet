@@ -18,7 +18,7 @@ export const PL_SIZES = [
   { cpu: 16, ram: 32 },
 ];
 const COLORS = { daytona: '#3ddc84', boat: '#ff8a5c', e2b: '#ffc94d', isorun: '#6fa8ff', fleetpod: '#ffffff' };
-const SPARE = ['#c792ea', '#5ce1e6', '#f78fb3', '#b8e986', '#e0e0e8', '#ff6b6b', '#a3a3ff', '#d4a373', '#7fd1b9', '#f3a6ff'];
+const SPARE = ['#c792ea', '#5ce1e6', '#f78fb3', '#b8e986', '#e0e0e8', '#ff6b6b', '#a3a3ff', '#d4a373', '#7fd1b9', '#f3a6ff', '#e8c07a', '#9ad0ff', '#ffd6a5', '#caffbf', '#9bf6ff', '#bdb2ff', '#ffc6ff', '#fdffb6'];
 const DAYS = 30;
 
 const pct = (sorted, p) => (sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * p + 0.5))] : null);

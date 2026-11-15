@@ -3,6 +3,7 @@ import boat from './boat.js';
 import isorun from './isorun.js';
 import e2b from './e2b.js';
 import daytona from './daytona.js';
+import anona from './anona.js';
 import hopx from './hopx.js';
 import runloop from './runloop.js';
 import blaxel from './blaxel.js';
@@ -17,4 +18,4 @@ import fleetpod from './fleetpod.js';
 import demo from './demo.js';
 
 // Working: daytona, blaxel. Blocked (cannot be tested yet): see `blocked` in the file. Untested: all the others.
-export const PROVIDERS = { boat, isorun, e2b, daytona, hopx, runloop, blaxel, vercel, sprites, morph, upstash, tensorlake, freestyle, langsmith, fleetpod, demo };
+export const PROVIDERS = { boat, isorun, e2b, daytona, anona, hopx, runloop, blaxel, vercel, sprites, morph, upstash, tensorlake, freestyle, langsmith, fleetpod, demo };

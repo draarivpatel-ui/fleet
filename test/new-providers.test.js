@@ -390,3 +390,21 @@ describe('langsmith sandboxes (written from the LangSmith REST docs, 2026-11-12)
     expect(langsmith.price(size)).toBe(0.189);
   });
 });
+
+describe('anona (E2B-compatible gateway, docs.anonalabs.com)', () => {
+  test('uses its own domain for the API and the sandbox daemon', async () => {
+    const anona = (await import('../src/providers/anona.js')).default;
+    const calls = [];
+    const fetchImpl = async (url) => {
+      calls.push(url);
+      return new Response(JSON.stringify({ sandboxID: 'sb9', envdAccessToken: 't' }), { status: 200 });
+    };
+    const made = await anona.create('k', { cpu: 2, ram: 4 }, { fetchImpl });
+    expect(calls[0]).toBe('https://api.compute.anonalabs.com/v2/sandboxes');
+    expect(made.id).toBe('sb9~t~');
+    await anona.run('k', made.id, 'ls', { fetchImpl }).catch(() => {});
+    expect(calls[1]).toBe('https://49983-sb9.compute.anonalabs.com/process.Process/Start');
+    expect(anona.working).toBeUndefined();
+    expect(anona.keyHeader).toBe('X-Anona-Key');
+  });
+});

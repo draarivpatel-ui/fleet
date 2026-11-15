@@ -3,7 +3,6 @@
 // E2B has no memory field on create: memory comes from the template. Fleet uses the stock "base" template.
 import { call, UA } from './http.js';
 
-const API = 'https://api.e2b.app';
 const CPU_HOUR = 0.000014 * 3600;
 const GIB_HOUR = 0.0000045 * 3600;
 const ENVD_PORT = '49983';
@@ -11,9 +10,9 @@ const ENVD_PORT = '49983';
 // The pod id must carry what run() needs later, because fleet stores nothing: sandbox id, envd token, domain, and "w" when
 // the sandbox pauses instead of dying and a visit to its URL wakes it (a public pod).
 const pack = (sandboxID, token, domain, wakes = false) => [sandboxID, token || '', domain || ''].join('~') + (wakes ? '~w' : '');
-const unpack = (id) => {
+const unpack = (id, fallbackDomain = 'e2b.app') => {
   const [sandboxID, token, domain, wakes] = String(id).split('~');
-  return { sandboxID, token: token || '', domain: domain || 'e2b.app', wakes: wakes === 'w' };
+  return { sandboxID, token: token || '', domain: domain || fallbackDomain, wakes: wakes === 'w' };
 };
 // A public pod: its URLs answer without E2B's traffic token (projects made since 2026-10-30 are private by default), and at
 // the timeout it pauses with its memory instead of dying, so a visit resumes it with the app still running
@@ -55,7 +54,10 @@ export function readFrames(bytes) {
   return { stdout, stderr, exitCode };
 }
 
-export default {
+// Any E2B-compatible gateway (E2B's own, Anona's) speaks the same API on api.<domain> and <port>-<id>.<domain>.
+export function e2bLike(domainName, meta) {
+  const API = `https://api.${domainName}`;
+  return {
   label: 'E2B',
   keyHeader: 'X-E2B-Key',
   working: '2026-11-13', // real account run: start, run with env/cwd/timeout, files, timeout (exit 124), stop, stop again
@@ -100,7 +102,7 @@ export default {
   },
 
   async run(key, id, command, { fetchImpl = fetch } = {}) {
-    const { sandboxID, token, domain } = unpack(id);
+    const { sandboxID, token, domain } = unpack(id, domainName);
     const res = await fetchImpl(`https://${ENVD_PORT}-${sandboxID}.${domain}/process.Process/Start`, {
       method: 'POST',
       headers: {
@@ -121,7 +123,7 @@ export default {
   // pauses and wakes keeps the link with no end; any other dies at its timeout (endAt from GET /sandboxes/:id).
   // No startup command is needed: a resume restores memory, so the running app is still running.
   async publicUrl(key, id, port, { fetchImpl = fetch } = {}) {
-    const { sandboxID, domain, wakes } = unpack(id);
+    const { sandboxID, domain, wakes } = unpack(id, domainName);
     const url = `https://${port}-${sandboxID}.${domain}`;
     if (wakes) return { url, wakesOnVisit: true, expiresAt: null };
     const info = await call(fetchImpl, `${API}/sandboxes/${encodeURIComponent(sandboxID)}`, { headers: { 'x-api-key': key } }).catch(() => null);
@@ -129,11 +131,15 @@ export default {
   },
 
   async stop(key, id, { fetchImpl = fetch } = {}) {
-    const { sandboxID } = unpack(id);
+    const { sandboxID } = unpack(id, domainName);
     try {
       await call(fetchImpl, `${API}/sandboxes/${encodeURIComponent(sandboxID)}`, { method: 'DELETE', headers: { 'x-api-key': key } });
     } catch (e) {
       if (e.status !== 404) throw e; // already gone
     }
   },
-};
+  ...meta,
+  };
+}
+
+export default e2bLike('e2b.app', {});

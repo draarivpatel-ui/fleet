@@ -143,6 +143,23 @@ describe('cabinet', () => {
     for (let i = 0; i < 9; i++) await page('POST', '/console/keys', { name: `k${i}` });
     expect(await (await page('POST', '/console/keys', { name: 'eleven' })).text()).toContain('Revoke one first');
   });
+  test('the labs can ask for a key: a confirm page, then a key in the URL fragment, only for practice.flisk.si', async () => {
+    const { env, page } = await setup();
+    const back = 'https://practice.flisk.si/labs/10-local-model/';
+    const ask = await page('GET', `/console/lab-key?return=${encodeURIComponent(back)}`);
+    expect(ask.status).toBe(200);
+    expect(await ask.text()).toContain('Create key and go back');
+    expect((await page('GET', `/console/lab-key?return=${encodeURIComponent('https://evil.test/')}`)).status).toBe(400);
+    expect((await page('POST', '/console/lab-key', { return: back }, { origin: 'https://evil.test' })).status).toBe(403);
+    expect((await page('POST', '/console/lab-key', { return: 'https://evil.test/' })).status).toBe(400);
+    const made = await page('POST', '/console/lab-key', { return: back });
+    expect(made.status).toBe(303);
+    const loc = made.headers.get('location');
+    expect(loc.startsWith(back + '#fleet-key=fleet_')).toBe(true);
+    const key = decodeURIComponent(loc.split('#fleet-key=')[1]);
+    const r = await handle(new Request(`${ORIGIN}/v1/pods`, { method: 'POST', headers: { authorization: `Bearer ${key}`, 'X-mid-Key': 'm' }, body: '{}' }), env, { providers });
+    expect(r.status).toBe(201);
+  });
   test('forms from another site are refused', async () => {
     const { page } = await setup();
     expect((await page('POST', '/console/keys', { name: 'x' }, { origin: 'https://evil.test' })).status).toBe(403);

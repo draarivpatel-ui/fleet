@@ -2,7 +2,7 @@ import { PROVIDERS } from './providers/index.js';
 import { createPod, publicUrl, readFile, runPod, stopPod, priceTable, writeFile, DEFAULT_SIZE } from './route.js';
 import { handleMcp } from './mcp.js';
 import { bearer, githubAuthorizeUrl, githubLogin } from './auth.js';
-import { homePage, messagePage, shell } from './page.js';
+import { esc, homePage, messagePage, shell } from './page.js';
 import { docsPage, skillMd, DOCS_CSS } from './docs.js';
 import { pricingPage, PRICING_CSS } from './pricing.js';
 import { measured, podlyticsData, podlyticsPage } from './podlytics.js';
@@ -163,6 +163,20 @@ export async function handle(request, env = {}, opts = {}) {
   return out;
 }
 
+// "Use this key in the labs": one confirm click in the cabinet creates a key and hands it to the lab page in the URL
+// fragment (never sent to a server; the page removes it at once). Only the origins in BROWSER_ORIGINS can receive it.
+const labReturn = (raw) => {
+  try {
+    const u = new URL(String(raw || ''));
+    return BROWSER_ORIGINS.has(u.origin) ? u : null;
+  } catch {
+    return null;
+  }
+};
+function labKeyPage(back) {
+  return shell('Send a key to the labs · fleet', `<section class="msg"><p class="m label">fleet</p><h1 style="font-size:clamp(36px,5vw,64px)">Use fleet in the labs?</h1><p class="lede">This creates a new key named "labs" and sends it to ${esc(back.host)} in this browser. You can revoke it any time under Keys.</p><form method="post" action="/console/lab-key" class="cta-row" style="margin-top:24px"><input type="hidden" name="return" value="${esc(back.href)}"><button class="b inv" type="submit">Create key and go back</button><a class="b" href="${esc(back.href)}">Cancel</a></form></section>`);
+}
+
 async function handleCore(request, env = {}, opts = {}) {
   // HEAD is GET without the body (link checkers, uptime probes).
   if (request.method === 'HEAD') {
@@ -241,6 +255,22 @@ async function handleCore(request, env = {}, opts = {}) {
     const session = await readSession(env, request);
     if (!session) return request.method === 'GET' ? redirect(`/auth/start?next=${encodeURIComponent(path + url.search)}`) : html(messagePage('Signed out', 'Sign in again.'), 401);
     const { login } = session;
+    if (path === '/console/lab-key') {
+      if (request.method === 'GET') {
+        const back = labReturn(url.searchParams.get('return'));
+        return back ? html(labKeyPage(back), 200, { 'cache-control': 'no-store' }) : html(messagePage('Unknown page', 'Keys can only be sent back to Practice & Learn AI.'), 400);
+      }
+      if (request.method === 'POST') {
+        if (!sameOrigin(request, origin)) return html(messagePage('Not allowed', 'This form only works from fleet itself.'), 403);
+        const form = await request.formData().catch(() => null);
+        const back = labReturn(form?.get('return'));
+        if (!back) return html(messagePage('Unknown page', 'Keys can only be sent back to Practice & Learn AI.'), 400);
+        const made = await createKey(env, login, 'labs');
+        if (!made.key) return html(messagePage('No key created', made.error || 'Try again.'), 400);
+        back.hash = 'fleet-key=' + encodeURIComponent(made.key);
+        return redirect(back.href, { 'cache-control': 'no-store' });
+      }
+    }
     if (request.method === 'GET' && path === '/console/demo') return html(demoPage(), 200, { 'cache-control': 'no-store' });
     if (request.method === 'POST' && path === '/console/demo') {
       if (!sameOrigin(request, origin)) return json(403, { error: 'this only works from fleet itself' });

@@ -144,7 +144,26 @@ async function tryPod(request, env, login, providers, fetchImpl, waitUntil = nul
   });
 }
 
+// Sites that may call the pod API from a browser tab (the labs run steps in a pod). Calls carry a bearer key, never a cookie,
+// so letting these origins read the answer gives them nothing the key holder could not already do.
+const BROWSER_ORIGINS = new Set(['https://practice.flisk.si']);
+const corsPath = (path) => path === '/v1/pods' || path.startsWith('/v1/pods/');
+
 export async function handle(request, env = {}, opts = {}) {
+  const origin = request.headers.get('origin') || '';
+  const path = new URL(request.url).pathname.replace(/\/+$/, '');
+  if (!BROWSER_ORIGINS.has(origin) || !corsPath(path)) return handleCore(request, env, opts);
+  const cors = { 'access-control-allow-origin': origin, vary: 'Origin' };
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: { ...cors, 'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS', 'access-control-allow-headers': request.headers.get('access-control-request-headers') || 'authorization, content-type', 'access-control-max-age': '86400' } });
+  }
+  const res = await handleCore(request, env, opts);
+  const out = new Response(res.body, res);
+  for (const [k, v] of Object.entries(cors)) out.headers.set(k, v);
+  return out;
+}
+
+async function handleCore(request, env = {}, opts = {}) {
   // HEAD is GET without the body (link checkers, uptime probes).
   if (request.method === 'HEAD') {
     const r = await handle(new Request(request.url, { method: 'GET', headers: request.headers }), env, opts);

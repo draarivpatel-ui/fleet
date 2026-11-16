@@ -35,10 +35,7 @@ Not added, because fleet is a Worker that only speaks plain HTTP: Modal (no publ
 
 ## Browser pod: a pod with no key at all
 
-`web/browserpod/` is a pod that runs in the visitor's own browser tab: a small real Linux on WebAssembly, with the same
-start, run, write, read and stop calls. No account, no key, no server. It starts in about 3 seconds and fits file and
-shell tasks; it has no internet, Python or Node inside. A site loads it as plain files from `/browserpod/`, so fleet's
-API and keys are not involved. Details, limits and licences: [web/browserpod/README.md](web/browserpod/README.md).
+The browser pod, a small real Linux in the visitor's own tab, moved to its own repo: [flisk-sh/linux2wasm](https://github.com/flisk-sh/linux2wasm). Fleet still serves a pinned release of it at `/browserpod/`, so sites that load it from here keep working. Run `sh scripts/fetch-browserpod.sh` to fetch it locally.
 
 ## API
 

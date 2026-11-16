@@ -6,3 +6,4 @@ dist-worker/
 
 # Browser pod: fetched from flisk-sh/linux2wasm by scripts/fetch-browserpod.sh, never committed.
 web/browserpod/
+web/cfworker2browser/

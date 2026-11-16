@@ -1,3 +1,12 @@
+# Static files skip the Worker, so they get the baseline security headers here (the Worker sets the same on its own responses).
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: frame-ancestors 'self'
+
 # The browser pod's files are loaded by other sites (chat.flisk.si), so any page may fetch them.
 /browserpod/*
   Access-Control-Allow-Origin: *

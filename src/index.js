@@ -14,6 +14,7 @@ import { assetResponse, llmsTxt, robotsTxt, sitemapXml } from './seo.js';
 import { DEMO_PROVIDERS, demoPage, demoRun } from './demo.js';
 import { fieldsOf, joinFields } from './providers/fields.js';
 import { clearSession, makeSession, readSession, sameOrigin } from './session.js';
+import { withSecurityHeaders } from './security-headers.js';
 
 const SECURITY = {
   'x-content-type-options': 'nosniff',
@@ -419,6 +420,6 @@ async function handleCore(request, env = {}, opts = {}) {
 
 export default {
   // waitUntil lets the usage log be written after the answer is sent, so logging adds no time to a call.
-  fetch: (request, env, ectx) =>
-    handle(request, env, { waitUntil: ectx?.waitUntil ? (p) => ectx.waitUntil(p) : null }).catch((e) => json(500, { error: 'fleet failed: ' + String(e?.message || e).slice(0, 200) })),
+  fetch: async (request, env, ectx) =>
+    withSecurityHeaders(await handle(request, env, { waitUntil: ectx?.waitUntil ? (p) => ectx.waitUntil(p) : null }).catch((e) => json(500, { error: 'fleet failed: ' + String(e?.message || e).slice(0, 200) }))),
 };

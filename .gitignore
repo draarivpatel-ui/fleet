@@ -4,6 +4,5 @@ node_modules/
 .dev.vars
 dist-worker/
 
-# Browser pod engine and Linux image: fetched by web/browserpod/vendor/get.sh, never committed.
-web/browserpod/vendor/*
-!web/browserpod/vendor/get.sh
+# The browser pod (flisk-sh/linux2wasm), fetched by scripts/fetch-browserpod.sh, never committed.
+web/browserpod/

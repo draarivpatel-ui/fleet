@@ -12,11 +12,11 @@ binding = "DB"
 database_name = "fleet"
 database_id = "ce277481-100d-43f5-8b96-f5fdb88218d4"
 
-# The browser pod (web/browserpod): a Linux that runs in the visitor's tab, served as plain files at /browserpod/.
+# The browser pod (github.com/flisk-sh/linux2wasm, fetched into web/browserpod): a Linux that runs in the visitor's tab, served as plain files at /browserpod/.
 # Static files are free and do not count as Worker requests. The files are not in git, so every deploy fetches them first
 # (checked against pinned hashes). A deploy from a fresh checkout once went live without them and the pod 404ed.
 [build]
-command = "sh web/browserpod/vendor/get.sh"
+command = "sh scripts/fetch-browserpod.sh"
 
 [assets]
 directory = "./web"

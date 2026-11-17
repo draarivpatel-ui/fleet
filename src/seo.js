@@ -1,6 +1,7 @@
 // What search engines and link previews read: icons, canonical URL, Open Graph and Twitter tags, JSON-LD, sitemap,
 // robots.txt and llms.txt. One list of public pages (PAGES) feeds all of them, so a page is added in one place.
 import { ASSETS } from './assets.js';
+import { STR } from './strings.js';
 
 export const SITE = 'https://fleet.flisk.si';
 
@@ -16,6 +17,10 @@ export const PAGES = {
   '/': {
     title: 'fleet: one API for every agent pod',
     description: 'One API for every agent pod, over HTTP or MCP. Fleet starts each sandbox on the cheapest provider you have an account at and moves on when one fails.',
+  },
+  '/nl': {
+    title: STR.nl.title,
+    description: STR.nl.description,
   },
   '/docs': {
     title: 'fleet API docs: start, run, files and stop agent pods',
@@ -49,7 +54,10 @@ export function headTags({ path, title, description }) {
   const t = esc(title || page.title);
   const d = esc(description || page.description);
   return `${ICON_TAGS}
-<link rel="canonical" href="${url}">
+<link rel="canonical" href="${url}">${path === '/' || path === '/nl' ? `
+<link rel="alternate" hreflang="en" href="${SITE}/">
+<link rel="alternate" hreflang="nl" href="${SITE}/nl">
+<link rel="alternate" hreflang="x-default" href="${SITE}/">` : ''}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="fleet">
 <meta property="og:title" content="${t}">
@@ -58,6 +66,7 @@ export function headTags({ path, title, description }) {
 <meta property="og:image" content="${SITE}/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:locale" content="${path === '/nl' ? 'nl_NL' : 'en_US'}">
 <meta property="og:image:alt" content="fleet: one key, every agent pod">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${t}">
@@ -66,13 +75,14 @@ export function headTags({ path, title, description }) {
 }
 
 // Structured data for the home page: what fleet is, so a search result can say "software application, free, open source".
-export const jsonLd = () =>
+export const jsonLd = (lang = 'en') =>
   `<script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: 'fleet',
     url: SITE + '/',
-    description: PAGES['/'].description,
+    description: PAGES[lang === 'nl' ? '/nl' : '/'].description,
+    inLanguage: lang,
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'Web',
     image: SITE + '/og.png',

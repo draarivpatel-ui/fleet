@@ -557,7 +557,7 @@ describe('provider status', () => {
   // Providers that have run end to end on a real account. Add one here only after scripts/real-check.mjs passed for it.
   const WORKING = { daytona: '2026-11-12', blaxel: '2026-11-12', upstash: '2026-11-12', vercel: '2026-11-12', freestyle: '2026-11-13', e2b: '2026-11-13', tensorlake: '2026-11-13' };
   // Providers nobody can test yet, and why.
-  const BLOCKED = { boat: 'card', hopx: 'down', isorun: 'down', morph: 'card', runloop: 'invite', sprites: 'card' };
+  const BLOCKED = { boat: 'card', digitalocean: 'card', hopx: 'down', isorun: 'down', morph: 'card', runloop: 'invite', sprites: 'card' };
   const LABEL = { down: 'Provider down', card: 'Needs a card', invite: 'Invite only' };
   test('every provider is working, blocked (with the reason) or untested, on the home page, the API and the cabinet', async () => {
     const { PROVIDERS } = await import('../src/providers/index.js');

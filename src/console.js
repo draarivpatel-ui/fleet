@@ -279,7 +279,14 @@ function connectBox(p, conn, canConnect) {
 }
 
 // Provider catalog, after Monid's tools page: search, filters with counts, one card per provider with badges.
-function providersSection(prices, providers, { connections = {}, canConnect = false, notice, error } = {}) {
+function defaultPicker(prices, providers, connections, defaultProvider) {
+  const choices = prices.filter((p) => providers[p.provider]?.demo || connections[p.provider]);
+  const now = choices.find((p) => p.provider === defaultProvider);
+  const opts = choices.map((p) => `<option value="${esc(p.provider)}"${p.provider === defaultProvider ? ' selected' : ''}>${esc(p.label)}</option>`).join('');
+  return `<form class="box" method="post" action="/console/default" id="picker"><div class="row" style="margin-top:0"><span>Your pods start on: <b id="prov-now">${now ? esc(now.label) : 'the cheapest provider you have connected'}</b></span>${choices.length ? `<label>Change <select name="provider" aria-label="Default provider">${opts}</select></label><button class="b inv" type="submit">Save</button>` : ''}</div>${choices.length ? '' : '<p class="note">Connect a provider below to choose where your pods start.</p>'}${now && now.status !== 'working' ? `<p class="note">${esc(now.untestedNote || `${now.label} has not been run live by fleet yet.`)}</p>` : ''}</form>`;
+}
+
+function providersSection(prices, providers, { connections = {}, canConnect = false, notice, error, defaultProvider = null } = {}) {
   const list = prices
     .map((p) => ({ ...p, meta: providers[p.provider], facts: providers[p.provider].facts || {} }))
     .sort((a, b) => (a.status === 'working' ? 0 : 1) - (b.status === 'working' ? 0 : 1));
@@ -310,7 +317,7 @@ ${connectBox(p, connections[p.provider], canConnect)}
 </article>`;
     })
     .join('');
-  return `${error ? `<div class="err">${esc(error)}</div>` : ''}${notice ? `<div class="box">${esc(notice)}</div>` : ''}<div class="search"><input type="text" id="q" placeholder="Search providers (for example EU, no card, GPU)" aria-label="Search providers"></div>
+  return `${error ? `<div class="err">${esc(error)}</div>` : ''}${notice ? `<div class="box">${esc(notice)}</div>` : ''}${defaultPicker(prices, providers, connections, defaultProvider)}<div class="search"><input type="text" id="q" placeholder="Search providers (for example EU, no card, GPU)" aria-label="Search providers"></div>
 <div class="catalog">
 <nav class="filters" aria-label="Filter providers">${FILTERS.map(([id, label, f], i) => `<button type="button" data-f="${id}"${i ? '' : ' class="on"'}><span>${esc(label)}</span><span class="c">${list.filter(f).length}</span></button>`).join('')}</nav>
 <div class="pgrid" id="pgrid">${cards}<p class="note" id="none" hidden>No provider matches. Clear the search.</p></div>
@@ -329,13 +336,13 @@ document.querySelectorAll('[data-f]').forEach(b=>b.addEventListener('click',()=>
 </script>`;
 }
 
-function trySection(prices, providers, connections = {}) {
+function trySection(prices, providers, connections = {}, defaultProvider = null) {
   const demo = Object.entries(providers).find(([, p]) => p.demo);
   const opts =
     (demo ? `<option value="${esc(demo[0])}">Demo · simulated, no account needed</option>` : '') +
     prices
       .filter((p) => p.pricePerHour !== null)
-      .map((p) => `<option value="${esc(p.provider)}">${esc(p.label)} · ${p.pricePerHour === 0 ? 'free' : `${money(p.pricePerHour)} an hour`}${p.status === 'working' ? '' : ` · ${esc(String(p.stateLabel || 'untested').toLowerCase())}`}</option>`)
+      .map((p) => `<option value="${esc(p.provider)}"${p.provider === defaultProvider ? ' selected' : ''}>${esc(p.label)} · ${p.pricePerHour === 0 ? 'free' : `${money(p.pricePerHour)} an hour`}${p.status === 'working' ? '' : ` · ${esc(String(p.stateLabel || 'untested').toLowerCase())}`}</option>`)
       .join('');
   const pages = JSON.stringify(Object.fromEntries(Object.entries(KEY_PAGE).map(([k, v]) => [k, v.url])));
   const conn = JSON.stringify(Object.keys(connections));
@@ -365,7 +372,7 @@ function trySection(prices, providers, connections = {}) {
 (()=>{const P=${pages};const C=${conn};const L=${logos};const $=(i)=>document.getElementById(i);
 const store=(()=>{try{return window.localStorage}catch{return null}})();
 const load=()=>{const v=$('prov').value;$('plogo').innerHTML=L[v]||'';const k=store&&store.getItem('fleet_try_'+v);$('pkey').value=k||'';$('remember').checked=!!k;$('getkey').href=P[v]||'#';$('getkey').style.display=P[v]?'':'none';$('pkey').disabled=v==='demo';$('pkey').placeholder=v==='demo'?'No key needed for the demo pod':C.includes(v)?'Connected: leave empty to use your saved key':'Your provider API key'};
-if(C.length&&[...$('prov').options].some(o=>o.value===C[0]))$('prov').value=C[0];
+if(!$('prov').querySelector('[selected]')&&C.length&&[...$('prov').options].some(o=>o.value===C[0]))$('prov').value=C[0];
 const label=()=>{const v=$('prov').value;$('go').textContent=v==='demo'?'Start demo pod':'Start '+(n=>n.endsWith(' pod')?n:n+' pod')($('prov').selectedOptions[0].textContent.split(' · ')[0])};
 $('prov').addEventListener('change',()=>{load();label()});load();label();
 const s=(ms)=>ms==null?'—':(ms/1000).toFixed(1)+' s';
@@ -421,7 +428,7 @@ ${field('maxRam', 'Biggest pod: memory', 'GB', 'Bigger requests answer 400.')}
 <p class="note">Fleet doesn't bill you, so there is no money budget here: these caps keep your provider bills small. Fleet's own caps stay on top: 120 calls a minute and 300 pods a day per account.</p>`;
 }
 
-export function cabinetPage({ origin, login, section, keys, pods, calls = [], history = null, limits, connections = {}, canConnect = false, prices, providers, newKey, error, saved, errorsOnly, notice }) {
+export function cabinetPage({ origin, login, section, keys, pods, calls = [], history = null, limits, connections = {}, canConnect = false, defaultProvider = null, prices, providers, newKey, error, saved, errorsOnly, notice }) {
   const auto = !keys.length && !pods.length ? 'start' : 'overview';
   const id = SECTIONS.some(([s]) => s === section) ? section : auto;
   const title = SECTIONS.find(([s]) => s === id)[1];
@@ -433,9 +440,9 @@ export function cabinetPage({ origin, login, section, keys, pods, calls = [], hi
         : id === 'keys'
           ? keysSection({ keys, newKey, error })
           : id === 'try'
-            ? trySection(prices, providers, connections)
+            ? trySection(prices, providers, connections, defaultProvider)
             : id === 'providers'
-              ? providersSection(prices, providers, { connections, canConnect, notice, error })
+              ? providersSection(prices, providers, { connections, canConnect, notice, error, defaultProvider })
               : id === 'start'
                 ? startSection(origin, keys, pods, connections)
                 : id === 'usage'

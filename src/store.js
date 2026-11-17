@@ -260,3 +260,20 @@ export async function connectedKeys(env, login) {
   }
   return out;
 }
+
+// ---- the provider pods start on by default
+
+export async function getDefaultProvider(env, login) {
+  try {
+    const r = await env.DB.prepare('SELECT default_provider FROM prefs WHERE login = ?').bind(login).first();
+    return r?.default_provider || null;
+  } catch {
+    return null; // table not created yet on this copy
+  }
+}
+
+export async function setDefaultProvider(env, login, provider) {
+  await env.DB.prepare('INSERT INTO prefs (login, default_provider, updated) VALUES (?, ?, ?) ON CONFLICT(login) DO UPDATE SET default_provider = excluded.default_provider, updated = excluded.updated')
+    .bind(login, provider, nowIso())
+    .run();
+}

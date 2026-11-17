@@ -392,6 +392,20 @@ describe('connect a provider once', () => {
     expect(html).toContain('const C=["mid"]');
     expect(html).toContain("$('prov').value=C[0]");
   });
+  test('provider picker: default saved, shown, preselected in Try, and refused for an unconnected provider', async () => {
+    const { env, page } = await connectedSetup();
+    let html = await (await page('GET', '/console?section=providers')).text();
+    expect(html).toContain('the cheapest provider you have connected');
+    expect(await (await page('POST', '/console/default', { provider: 'mid' })).text()).toContain('Pick Demo or a provider you have connected');
+    expect(env.DB.raw.query('SELECT COUNT(*) AS c FROM prefs').get().c).toBe(0);
+    await page('POST', '/console/providers/mid/connect', { key: 'mid-secret-key-1234' });
+    html = await (await page('POST', '/console/default', { provider: 'mid' })).text();
+    expect(html).toContain('Your pods now start on');
+    expect(html).toMatch(/id="prov-now">mid</);
+    expect(env.DB.raw.query('SELECT default_provider AS d FROM prefs').get().d).toBe('mid');
+    const t = await (await page('GET', '/console?section=try')).text();
+    expect(t).toMatch(/<option value="mid" selected>/);
+  });
   test('try a pod uses the connected key when none is pasted', async () => {
     const { env, page } = await connectedSetup();
     await page('POST', '/console/providers/mid/connect', { key: 'mid-secret-key-1234' });

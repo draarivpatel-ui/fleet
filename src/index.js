@@ -8,7 +8,7 @@ import { docsPage, skillMd, DOCS_CSS } from './docs.js';
 import { pricingPage, PRICING_CSS } from './pricing.js';
 import { measured, podlyticsData, podlyticsPage } from './podlytics.js';
 import { cabinetPage } from './console.js';
-import { connectedKeys, connectProvider, disconnectProvider, listConnections, checkLimits, createKey, getLimits, LIMIT_DEFAULTS, callItem, listCalls, listKeys, listPodCalls, listPods, logCall, accessForKey, podListItem, podRef, podStatus, podsStartedToday, recordPod, revokeKey, setLimits } from './store.js';
+import { getDefaultProvider, setDefaultProvider, connectedKeys, connectProvider, disconnectProvider, listConnections, checkLimits, createKey, getLimits, LIMIT_DEFAULTS, callItem, listCalls, listKeys, listPodCalls, listPods, logCall, accessForKey, podListItem, podRef, podStatus, podsStartedToday, recordPod, revokeKey, setLimits } from './store.js';
 import { overMinuteLimit, PODS_PER_DAY } from './limit.js';
 import { vaultReady } from './vault.js';
 import { assetResponse, llmsTxt, robotsTxt, sitemapXml } from './seo.js';
@@ -85,8 +85,9 @@ async function cabinet(env, origin, login, section, providers, extra = {}) {
     extra.limits ? extra.limits : getLimits(env, login),
   ]);
   const connections = vaultReady(env) ? await listConnections(env, login) : {};
+  const defaultProvider = await getDefaultProvider(env, login);
   const history = section === 'pods' && extra.pod ? await listPodCalls(env, login, extra.pod) : null;
-  return html(cabinetPage({ origin, login, section, keys, pods, calls, history, limits, connections, canConnect: vaultReady(env), prices: priceTable(providers), providers, ...extra }), 200, { 'cache-control': 'no-store' });
+  return html(cabinetPage({ origin, login, section, keys, pods, calls, history, limits, connections, canConnect: vaultReady(env), defaultProvider, prices: priceTable(providers), providers, ...extra }), 200, { 'cache-control': 'no-store' });
 }
 
 // Every pod call records pod facts, goes to the usage log, and follows the account's own limits.
@@ -302,6 +303,14 @@ async function handleCore(request, env = {}, opts = {}) {
         const form = await request.formData().catch(() => null);
         const made = await createKey(env, login, form?.get('name'), form?.get('scope') === 'read' ? 'read' : 'full');
         return cabinet(env, origin, login, 'keys', providers, { keys: made.list, newKey: made.key, error: made.error });
+      }
+      if (path === '/console/default') {
+        const form = await request.formData().catch(() => null);
+        const provider = String(form?.get('provider') || '');
+        const conn = vaultReady(env) ? await listConnections(env, login) : {};
+        if (!providers[provider] || !(providers[provider].demo || conn[provider])) return cabinet(env, origin, login, 'providers', providers, { error: 'Pick Demo or a provider you have connected.' });
+        await setDefaultProvider(env, login, provider);
+        return cabinet(env, origin, login, 'providers', providers, { notice: `Your pods now start on ${providers[provider].label}.` });
       }
       if (path === '/console/try') return tryPod(request, env, login, providers, fetchImpl, waitUntil);
       const pc = /^\/console\/providers\/([a-z0-9]+)\/(connect|disconnect)$/.exec(path);

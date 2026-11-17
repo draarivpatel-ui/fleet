@@ -64,3 +64,10 @@ CREATE TABLE IF NOT EXISTS provider_keys (
   created TEXT NOT NULL,
   PRIMARY KEY (login, provider)
 );
+
+-- The provider a person's pods start on by default (picked in the cabinet). Empty means fleet picks the cheapest connected one.
+CREATE TABLE IF NOT EXISTS prefs (
+  login TEXT PRIMARY KEY,
+  default_provider TEXT NOT NULL,
+  updated TEXT NOT NULL
+);

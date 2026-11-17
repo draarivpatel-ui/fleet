@@ -409,7 +409,7 @@ ${calls.length ? `<div class="scroll" style="margin-top:18px"><table><tr><th>Tim
 function modelSection() {
   return `<p class="lede" style="margin:22px 0 0">Choose the model your agents run on.</p>
 <div class="card"><div class="chead"><i>·</i><b>Your model</b></div><div class="cbody">
-<p>Now: <b id="model-now">checking…</b></p>
+<p>Now: <b id="model-now">Flisk Wolf (free)</b></p>
 <p class="note">Pick OpenAI, Claude or OpenRouter and paste a key once. It is saved at inference.flisk.si, never in fleet. Leave it empty to use free Flisk Wolf.</p>
 <div id="model-picker"></div>
 </div></div>

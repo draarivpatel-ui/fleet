@@ -1,3 +1,4 @@
+import { traced } from './trace.js';
 import { PROVIDERS } from './providers/index.js';
 import { createPod, publicUrl, readFile, runPod, stopPod, priceTable, writeFile, DEFAULT_SIZE } from './route.js';
 import { handleMcp } from './mcp.js';

@@ -4,6 +4,8 @@
 // Because the pod is a whole VM it is isolated from other pods and from other people, unlike a fleetd shared by many pods.
 // Limits to know: the link to fleetd is plain HTTP (the token is random per pod and the VM is deleted on stop), a droplet
 // takes about a minute to boot, and a stopped pod is DELETED, so nothing is kept.
+// Faster start: the credential may carry a snapshot id, "<api token>@<snapshot id>", made once with scripts/do-snapshot.mjs.
+// A droplet from that snapshot already has Node and fleetd, so cloud-init only checks the hash and starts it (no downloads).
 // Untested: written from the public API docs on 2026-11-17, no real account yet (a new account needs a card).
 import { call, sleep } from './http.js';
 
@@ -28,17 +30,35 @@ export const sizeFor = (size) => SIZES.find((s) => s.cpu >= size.cpu && s.ram >=
 const auth = (key) => ({ authorization: `Bearer ${key}` });
 const randomToken = () => [...crypto.getRandomValues(new Uint8Array(24))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
-export function userData(token) {
+// "<api token>" boots from a stock Ubuntu image and downloads Node and fleetd; "<api token>@<snapshot id>" boots from a snapshot
+// that already holds them. Droplet snapshot ids are plain digits.
+export function parseKey(key) {
+  const k = String(key);
+  const i = k.indexOf('@');
+  if (i < 0) return { token: k, snapshot: null };
+  const snapshot = k.slice(i + 1);
+  if (i < 1 || !/^\d+$/.test(snapshot)) throw new Error('DigitalOcean credential must be "<api token>" or "<api token>@<snapshot id>" (digits only)');
+  return { token: k.slice(0, i), snapshot: Number(snapshot) };
+}
+
+// The install half: what a snapshot must already hold. Shared by cloud-init and scripts/do-snapshot.mjs.
+export const installLines = () => [
+  `curl -fsSL ${NODE_URL} | tar -xz -C /usr/local --strip-components=1`,
+  `curl -fsSL ${FLEETD_URL} -o /opt/fleetd.mjs`,
+];
+const verifyLine = `echo "${FLEETD_SHA256}  /opt/fleetd.mjs" | sha256sum -c -`;
+
+export function userData(token, { baked = false } = {}) {
   return [
     '#!/bin/bash',
     'set -e',
-    `curl -fsSL ${NODE_URL} | tar -xz -C /usr/local --strip-components=1`,
-    `curl -fsSL ${FLEETD_URL} -o /opt/fleetd.mjs`,
-    `echo "${FLEETD_SHA256}  /opt/fleetd.mjs" | sha256sum -c -`,
+    ...(baked ? [] : installLines()),
+    verifyLine,
     `FLEETD_TOKEN=${token} FLEETD_MAX_PODS=1 PORT=80 HOST=0.0.0.0 setsid nohup /usr/local/bin/node /opt/fleetd.mjs > /var/log/fleetd.log 2>&1 &`,
     '',
   ].join('\n');
 }
+export const snapshotUserData = () => ['#!/bin/bash', 'set -e', ...installLines(), verifyLine, 'poweroff', ''].join('\n');
 
 // fleet's id is "<droplet id>~<ip>~<token>~<pod id in fleetd>": fleet stores nothing, so run() reads everything from it.
 const pack = (...p) => p.join('~');
@@ -55,7 +75,7 @@ export default {
   help: 'https://github.com/flisk-sh/fleet/issues/4',
   blocked: { kind: 'card', note: 'DigitalOcean asks for a card when you sign up, so we cannot test it for free.' },
   priceSource: 'https://www.digitalocean.com/pricing/droplets',
-  note: 'One VM per pod, about a minute to start. Sizes 1/1 up to 4/8 (vCPU/GB). Stopping deletes the droplet.',
+  note: 'One VM per pod, about a minute to start (faster from a snapshot: see scripts/do-snapshot.mjs). Sizes 1/1 up to 4/8 (vCPU/GB). Stopping deletes the droplet.',
   price: (size) => {
     const s = sizeFor(size);
     return s ? Math.round((s.month / 672) * 1000) / 1000 : null;
@@ -81,11 +101,13 @@ export default {
   async create(key, size, { fetchImpl = fetch, wait = sleep } = {}) {
     const sz = sizeFor(size);
     if (!sz) throw new Error('size not offered: DigitalOcean pods are at most 4 vCPU and 8 GB');
+    const { token: apiKey, snapshot } = parseKey(key);
+    key = apiKey;
     const token = randomToken();
     const made = await call(fetchImpl, `${API}/droplets`, {
       method: 'POST',
       headers: auth(key),
-      body: { name: `fleet-${token.slice(0, 8)}`, region: REGION, size: sz.slug, image: IMAGE, user_data: userData(token), tags: ['fleet'], monitoring: false },
+      body: { name: `fleet-${token.slice(0, 8)}`, region: REGION, size: sz.slug, image: snapshot ?? IMAGE, user_data: userData(token, { baked: snapshot !== null }), tags: ['fleet'], monitoring: false },
     });
     const droplet = made?.droplet?.id;
     if (!droplet) throw new Error('DigitalOcean returned no droplet id');
@@ -129,7 +151,7 @@ export default {
   async stop(key, id, { fetchImpl = fetch } = {}) {
     const { droplet } = unpackDroplet(id);
     try {
-      await call(fetchImpl, `${API}/droplets/${droplet}`, { method: 'DELETE', headers: auth(key) });
+      await call(fetchImpl, `${API}/droplets/${droplet}`, { method: 'DELETE', headers: auth(parseKey(key).token) });
     } catch (e) {
       if (e.status !== 404) throw e; // already gone counts as stopped
     }

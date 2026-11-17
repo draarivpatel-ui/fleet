@@ -2,7 +2,7 @@
 import { describe, expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import digitalocean, { FLEETD_SHA256, sizeFor, unpackDroplet, userData } from '../src/providers/digitalocean.js';
+import digitalocean, { FLEETD_SHA256, parseKey, sizeFor, snapshotUserData, unpackDroplet, userData } from '../src/providers/digitalocean.js';
 
 function fakeFetch(answers) {
   const calls = [];
@@ -56,6 +56,28 @@ describe('digitalocean', () => {
     expect(f.calls.at(-1).url).toBe('http://203.0.113.7/pods/p1/exec');
     await digitalocean.stop('k', id, f);
     await digitalocean.stop('k', id, f); // already gone is fine
+  });
+  test('a snapshot credential boots from the snapshot and downloads nothing', async () => {
+    expect(parseKey('dop_v1_x')).toEqual({ token: 'dop_v1_x', snapshot: null });
+    expect(parseKey('dop_v1_x@123')).toEqual({ token: 'dop_v1_x', snapshot: 123 });
+    expect(() => parseKey('dop_v1_x@abc')).toThrow(/snapshot id/);
+    expect(() => parseKey('@123')).toThrow(/snapshot id/);
+    const baked = userData('tok', { baked: true });
+    expect(baked).not.toContain('curl');
+    expect(baked.indexOf('sha256sum -c')).toBeLessThan(baked.indexOf('FLEETD_TOKEN=tok'));
+    const f = fakeFetch([{ body: { droplet: { id: 9 } }, status: 202 }, { body: active }, { body: { ok: true } }, { body: { id: 'p1' } }, { body: null, status: 204 }]);
+    const { id } = await digitalocean.create('dop_v1_x@555', { cpu: 1, ram: 1 }, f);
+    expect(f.calls[0].headers.authorization).toBe('Bearer dop_v1_x');
+    expect(JSON.parse(f.calls[0].body).image).toBe(555);
+    expect(JSON.parse(f.calls[0].body).user_data).not.toContain('curl');
+    await digitalocean.stop('dop_v1_x@555', id, f);
+    expect(f.calls.at(-1).headers.authorization).toBe('Bearer dop_v1_x');
+  });
+  test('the snapshot build script installs, verifies and powers off', () => {
+    const s = snapshotUserData();
+    expect(s).toContain('curl');
+    expect(s.indexOf('sha256sum -c')).toBeLessThan(s.indexOf('poweroff'));
+    expect(s).not.toContain('FLEETD_TOKEN');
   });
   test('a failed start deletes the droplet', async () => {
     const f = fakeFetch([{ body: { droplet: { id: 7 } } }, { body: { droplet: { id: 7, status: 'off' } } }, { body: null, status: 204 }]);

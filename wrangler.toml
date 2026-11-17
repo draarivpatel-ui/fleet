@@ -21,6 +21,11 @@ command = "sh scripts/fetch-browserpod.sh"
 [assets]
 directory = "./web"
 
+# Problems go to traces.flisk.si (flisk-sh/traces). Secret TRACE_KEY is this app's key there.
+[[services]]
+binding = "TRACES"
+service = "flisk-traces"
+
 [vars]
 PUBLIC_ORIGIN = "https://fleet.flisk.si"
 

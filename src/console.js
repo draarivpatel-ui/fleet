@@ -18,6 +18,7 @@ const SECTIONS = [
   ['keys', 'API keys'],
   ['try', 'Try a pod'],
   ['providers', 'Providers'],
+  ['model', 'Model'],
   ['limits', 'Limits'],
   ['docs', 'Docs'],
 ];
@@ -403,6 +404,23 @@ ${calls.length ? `<div class="scroll" style="margin-top:18px"><table><tr><th>Tim
 }
 
 // Limits, after Monid's budgets: the account's own caps, below fleet's hard ones.
+// The model people's agents use when they call through their own Flisk key. The picker is inference.flisk.si's page in an
+// iframe: it saves the provider key there, so fleet never sees or stores one.
+function modelSection() {
+  return `<p class="lede" style="margin:22px 0 0">Choose the model your agents run on.</p>
+<div class="card"><div class="chead"><i>·</i><b>Your model</b></div><div class="cbody">
+<p>Now: <b id="model-now">checking…</b></p>
+<p class="note">Pick OpenAI, Claude or OpenRouter and paste a key once. It is saved at inference.flisk.si, never in fleet. Leave it empty to use free Flisk Wolf.</p>
+<div id="model-picker"></div>
+</div></div>
+<script src="https://inference.flisk.si/picker.js"></script>
+<script>
+(()=>{const now=document.getElementById('model-now');
+if(!window.FliskPicker){now.textContent='the picker did not load';return}
+FliskPicker.mount('#model-picker',{onChange:c=>{now.textContent=c&&c.provider?c.provider+(c.model?' · '+c.model:''):'Flisk Wolf (free)'}});})();
+</script>`;
+}
+
 function limitsSection(limits, { error, saved }) {
   const field = (k, label, unit, help) => {
     const [lo, hi] = LIMIT_RANGES[k];
@@ -440,7 +458,9 @@ export function cabinetPage({ origin, login, section, keys, pods, calls = [], hi
                 ? startSection(origin, keys, pods, connections)
                 : id === 'usage'
                   ? usageSection(calls, errorsOnly)
-                  : id === 'limits'
+                  : id === 'model'
+                    ? modelSection()
+                    : id === 'limits'
                     ? limitsSection(limits, { error, saved })
                     : docsSection(origin);
   return shell({ login, section: id, title, body });

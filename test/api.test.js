@@ -60,7 +60,7 @@ describe('HTTP API', () => {
     expect(home.headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
     // The cabinet's model picker is inference.flisk.si's script and iframe; nothing else may be framed.
     expect(home.headers.get('content-security-policy')).toContain('frame-src https://inference.flisk.si;');
-    expect(home.headers.get('content-security-policy')).toContain('script-src \'unsafe-inline\' https://flisk.si https://inference.flisk.si;');
+    expect(home.headers.get('content-security-policy')).toContain('script-src \'unsafe-inline\' https://flisk.si https://flisk.sh https://inference.flisk.si;');
     expect(await home.text()).toContain('One API for every agent pod');
     const prices = await handle(new Request(`${ORIGIN}/v1/prices`), {}, { providers });
     expect((await prices.json()).prices.map((p) => p.provider)).toEqual(['cheap', 'mid']);

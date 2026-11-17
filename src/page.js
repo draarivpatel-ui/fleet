@@ -291,8 +291,8 @@ export function homePage({ origin, prices, size }) {
 <div>
 <a class="logo" href="/">${FLEET_MARK}fleet</a>
 <div style="margin-top:28px"><span class="pill"><i></i>Beta · ${stateCounts(prices)}</span></div>
-<h1>One key.<br>Every <em>agent<br>pod.</em></h1>
-<p class="lede">Your agent asks for a Linux machine. Fleet starts it on the cheapest sandbox provider you have an account at, and moves to the next one when a provider fails. Over HTTP or MCP.</p>
+<h1>One key.<br>Every <em>computer<br>your agent needs.</em></h1>
+<p class="lede">Your agent asks for a computer. Fleet starts one with the cheapest provider you have an account with, and switches to the next if one fails.</p>
 </div>
 <div>
 <div class="cmd"><code>set up ${esc(origin.replace(/^https?:\/\//, ''))}/SKILL.md</code><button type="button" data-copy="set up ${esc(origin)}/SKILL.md">Copy</button></div>

@@ -17,7 +17,8 @@ import langsmith from './langsmith.js';
 import paperpod from './paperpod.js';
 import railway from './railway.js';
 import fleetpod from './fleetpod.js';
+import digitalocean from './digitalocean.js';
 import demo from './demo.js';
 
 // Working: daytona, blaxel. Blocked (cannot be tested yet): see `blocked` in the file. Untested: all the others.
-export const PROVIDERS = { boat, isorun, e2b, daytona, anona, hopx, runloop, blaxel, vercel, sprites, morph, upstash, tensorlake, freestyle, langsmith, paperpod, railway, fleetpod, demo };
+export const PROVIDERS = { boat, isorun, e2b, daytona, anona, hopx, runloop, blaxel, vercel, sprites, morph, upstash, tensorlake, freestyle, langsmith, paperpod, railway, fleetpod, digitalocean, demo };

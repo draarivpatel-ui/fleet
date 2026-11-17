@@ -4,6 +4,7 @@
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 import { logoSvg } from './logos.js';
+import { STR } from './strings.js';
 import { headTags, ICON_TAGS, jsonLd, PAGES, SKIP_CSS, SKIP_LINK } from './seo.js';
 
 export const FONTS =
@@ -137,34 +138,43 @@ const COPY_JS = `<script>document.querySelectorAll('[data-copy]').forEach(b=>b.a
 
 // The standard second-level header shared by the Flisk product sites (fleet, host): brand tile + name on the left,
 // mono nav on the right, green call-to-action. nav items: [href, label, extra class]. Keep in step with flisk-sh/host src/page.js.
-export const topbar = ({ name, mark, nav, cta, sw = [], current = '' }) =>
-  `<div class="top m"><a class="brand" href="/" aria-label="${esc(name)} home"><span class="tile">${mark}</span><b>${esc(name)}</b></a>` +
-  (sw.length ? `<div class="swp"><span aria-label="Flisk pod products">${sw.map(([href, label, on]) => `<a${on ? ' class="on" aria-current="true"' : ''} href="${esc(href)}"><i></i>${esc(label)}</a>`).join('')}</span></div>` : '') +
+export const topbar = ({ name, mark, nav, cta, sw = [], current = '', lang = 'en' }) =>
+  `<div class="top m"><a class="brand" href="${lang === 'nl' ? '/nl' : '/'}" aria-label="${esc(name)} ${STR[lang].homeAria}"><span class="tile">${mark}</span><b>${esc(name)}</b></a>` +
+  (sw.length ? `<div class="swp"><span aria-label="${esc(STR[lang].switchAria)}">${sw.map(([href, label, on]) => `<a${on ? ' class="on" aria-current="true"' : ''} href="${esc(href)}"><i></i>${esc(label)}</a>`).join('')}</span></div>` : '') +
   `<nav aria-label="${esc(name)}">${nav.map(([href, label, cls = '']) => `<a${cls ? ` class="${cls}"` : ''} href="${esc(href)}"${href === current ? ' aria-current="page"' : ''}>${esc(label)}</a>`).join('')}</nav>` +
   `<a class="cta" href="${esc(cta[0])}">${esc(cta[1])} <i aria-hidden="true">→</i></a></div>`;
 // The product switch: fleet, its podlytics page and host (free places to run a fleet pod). Same on all three pages.
-export const FLEET_SWITCH = [
-  ['/', 'fleet', true],
+export const fleetSwitch = (lang = 'en') => [
+  [lang === 'nl' ? '/nl' : '/', 'fleet', true],
   ['/podlytics', 'podlytics'],
   ['https://host.flisk.si', 'host'],
 ];
-export const FLEET_NAV = [
-  ['/demo', 'Demo'],
-  ['/pricing', 'Pricing'],
-  ['/docs', 'Docs'],
-  ['/docs#mcp', 'MCP'],
-  ['https://github.com/flisk-sh/fleet', 'Source', 'hide'],
-  ['https://github.com/sponsors/flisk-sh', 'Sponsor', 'spons'],
-];
+export const FLEET_SWITCH = fleetSwitch('en');
+export const fleetNav = (lang = 'en') => {
+  const s = STR[lang];
+  return [
+    ['/demo', s.navDemo],
+    ['/pricing', s.navPricing],
+    ['/docs', s.navDocs],
+    ['/docs#mcp', 'MCP'],
+    ['https://github.com/flisk-sh/fleet', s.navSource, 'hide'],
+    ['https://github.com/sponsors/flisk-sh', s.navSponsor, 'spons'],
+  ];
+};
+export const FLEET_NAV = fleetNav('en');
 
-export const shell = (title, body, extraCss = '', meta = null) => `<!doctype html>
-<html lang="en">
+export const shell = (title, body, extraCss = '', meta = null) => {
+const lang = meta?.lang === 'nl' ? 'nl' : 'en';
+const s = STR[lang];
+const home = lang === 'nl' ? '/nl' : '/';
+return `<!doctype html>
+<html lang="${lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <script defer data-domain="fleet.flisk.si" src="https://flisk.sh/a.js"></script>
 <title>${esc(title)}</title>
-<meta name="description" content="${esc((meta?.path && PAGES[meta.path]?.description) || PAGES['/'].description)}">
+<meta name="description" content="${esc(meta?.description || (meta?.path && PAGES[meta.path]?.description) || PAGES['/'].description)}">
 ${meta ? headTags(meta) : `${ICON_TAGS}\n<meta name="robots" content="noindex">`}
 ${meta?.jsonLd || ''}
 <meta name="theme-color" content="#f7f5e4">
@@ -172,26 +182,27 @@ ${FONTS}
 <style>${CSS}${extraCss}</style>
 </head>
 <body>
-${SKIP_LINK}
+${SKIP_LINK.replace('Skip to content', s.skip)}
 ${FLISK_BAR}
 <div class="frame">
-${topbar({ name: 'Fleet', mark: FLEET_MARK, current: meta?.path, nav: FLEET_NAV, sw: FLEET_SWITCH, cta: ['/console', 'Console'] })}
+${topbar({ name: 'Fleet', mark: FLEET_MARK, current: meta?.path, nav: fleetNav(lang), sw: fleetSwitch(lang), cta: ['/console', 'Console'], lang })}
 <main id="main">${body}</main>
 <footer>
 <div class="foot-grid">
-<div><a class="logo" href="/">${FLEET_MARK}fleet</a><div><a class="b inv" href="/console?section=try" style="display:inline-block;margin:0">Try a demo pod</a></div><span class="m" style="color:var(--dim)">Beta · part of Flisk</span></div>
-<div><span class="m h">01 / Product</span><a href="/pricing">Pricing</a><a href="/podlytics">Podlytics</a><a href="/docs">Docs</a><a href="/SKILL.md">SKILL.md</a><a href="/console">Console</a></div>
-<div><span class="m h">02 / Flisk</span><a href="https://flisk.sh">Flisk CLI</a><a href="https://inference.flisk.si">Inference</a><a href="https://gardener.flisk.si">Gardener</a><a href="https://flisk.si">All products</a></div>
-<div><span class="m h">03 / Source</span><a href="https://github.com/sponsors/flisk-sh">Sponsor fleet</a><a href="https://github.com/flisk-sh/fleet">GitHub</a><a href="https://github.com/flisk-sh/fleet/issues">Report a bug</a><a href="https://github.com/flisk-sh/fleet#what-fleet-stores">What fleet stores</a></div>
+<div><a class="logo" href="${home}">${FLEET_MARK}fleet</a><div><a class="b inv" href="/console?section=try" style="display:inline-block;margin:0">${s.footTry}</a></div><span class="m" style="color:var(--dim)">${s.footBeta}</span><span class="m" style="color:var(--dim);display:block;margin-top:10px">${s.langLabel}: ${lang === 'en' ? '<b>English</b>' : '<a href="/?lang=en" hreflang="en" lang="en" style="display:inline;padding:0">English</a>'} · ${lang === 'nl' ? '<b>Nederlands</b>' : '<a href="/nl" hreflang="nl" lang="nl" style="display:inline;padding:0">Nederlands</a>'}</span></div>
+<div><span class="m h">${s.footProduct}</span><a href="/pricing">${s.footPricing}</a><a href="/podlytics">Podlytics</a><a href="/docs">Docs</a><a href="/SKILL.md">SKILL.md</a><a href="/console">Console</a></div>
+<div><span class="m h">${s.footFlisk}</span><a href="https://flisk.sh">${s.footCli}</a><a href="https://inference.flisk.si">Inference</a><a href="https://gardener.flisk.si">Gardener</a><a href="https://flisk.si">${s.footAll}</a></div>
+<div><span class="m h">${s.footSource}</span><a href="https://github.com/sponsors/flisk-sh">${s.footSponsor}</a><a href="https://github.com/flisk-sh/fleet">${s.footGithub}</a><a href="https://github.com/flisk-sh/fleet/issues">${s.footBug}</a><a href="https://github.com/flisk-sh/fleet#what-fleet-stores">${s.footStores}</a></div>
 </div>
 <div class="word" aria-hidden="true">fleet</div>
-<div class="legal"><span><a href="https://github.com/flisk-sh/fleet/blob/main/LICENSE">MIT licence</a><a href="https://github.com/sponsors/flisk-sh">Sponsor</a><a href="https://github.com/flisk-sh/fleet#what-fleet-stores">What fleet stores</a></span><span>fleet.flisk.si</span></div>
+<div class="legal"><span><a href="https://github.com/flisk-sh/fleet/blob/main/LICENSE">${s.legalLicence}</a><a href="https://github.com/sponsors/flisk-sh">${s.legalSponsor}</a><a href="https://github.com/flisk-sh/fleet#what-fleet-stores">${s.footStores}</a></span><span>fleet.flisk.si</span></div>
 </div>
 </footer>
-${COPY_JS}
+${COPY_JS.replace("'Copy'", `'${s.copy}'`).replace("'Copied'", `'${s.copied}'`)}
 </body></html>`;
+};
 
-const money = (n) => (n === null || n === undefined ? 'not offered' : `$${n.toFixed(3)}`);
+const money = (n, lang = 'en') => (n === null || n === undefined ? STR[lang].notOffered : `$${n.toFixed(3)}`);
 
 // The four lanes the pictures show: the cheapest provider that is not working fails, a working one starts the pod,
 // so the example never claims a start on a provider fleet has not run for real.
@@ -205,7 +216,7 @@ export function exampleLanes(prices) {
 
 // Hero art: one lane per provider. The cheapest is crossed out, the pod sits in the next lane (green, hatched like
 // inference.flisk.si). Built from the real price order.
-function laneArt(prices) {
+function laneArt(prices, lang = 'en') {
   const lanes = exampleLanes(prices);
   const fills = ['#e2552b', '#0b0b0d', '#efc415', '#2f6be9'];
   const w = 300 / Math.max(1, lanes.length);
@@ -222,7 +233,7 @@ function laneArt(prices) {
     .join('');
   const pod = lanes.length > 1 ? `<g class="pod"><svg x="${(w + w / 2 - 34).toFixed(1)}" y="144" width="68" height="68" viewBox="0 0 64 64">${FLEET_MARK_INNER}</svg></g>` : '';
   return `<svg class="art" viewBox="0 0 300 400" preserveAspectRatio="none" role="img" aria-labelledby="art-t">
-<title id="art-t">One lane per provider: ${esc(lanes[0]?.label || '')} is crossed out, the pod starts on ${esc(lanes[1]?.label || '')}</title>
+<title id="art-t">${esc(STR[lang].artTitle(lanes[0]?.label || '', lanes[1]?.label || ''))}</title>
 <defs>
 <pattern id="lx" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="3.5" height="8" fill="#171715" opacity=".55"/></pattern>
 <pattern id="lg" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="9" fill="#22c55e"/></pattern>
@@ -236,43 +247,46 @@ ${labels}
 }
 
 // A worked example of one start: the real price order, the cheapest failing so the fallback shows. Labelled as an example.
-function routeExample(prices) {
+function routeExample(prices, lang = 'en') {
+  const s = STR[lang];
   const offered = exampleLanes(prices);
   const lines = offered
     .map((p, i) => {
       const cls = i === 0 ? 'fail' : i === 1 ? 'win' : 'idle';
-      const st = i === 0 ? '401, next' : i === 1 ? 'started' : 'not needed';
+      const st = i === 0 ? s.st401 : i === 1 ? s.stStarted : s.stNotNeeded;
       const mark = i === 0 ? '×' : i === 1 ? '●' : '·';
-      return `<li class="${cls}" style="animation-delay:${0.35 + i * 0.45}s"><span>${mark}</span><span style="display:inline-flex;align-items:center;gap:8px">${logoSvg(p.provider, p.label, 18)}${esc(p.label)}</span><span>${money(p.pricePerHour)}</span><span class="st">${st}</span></li>`;
+      return `<li class="${cls}" style="animation-delay:${0.35 + i * 0.45}s"><span>${mark}</span><span style="display:inline-flex;align-items:center;gap:8px">${logoSvg(p.provider, p.label, 18)}${esc(p.label)}</span><span>${money(p.pricePerHour, lang)}</span><span class="st">${st}</span></li>`;
     })
     .join('');
-  return `<div class="route" role="img" aria-label="Example route: one provider answers 401, so fleet starts the pod on the next one">
-<div class="head"><span>POST /v1/pods · 2 vCPU · 4 GB</span><span>Example</span></div>
+  return `<div class="route" role="img" aria-label="${esc(s.exampleAria)}">
+<div class="head"><span>POST /v1/pods · 2 vCPU · 4 GB</span><span>${s.exampleTag}</span></div>
 <ol>${lines}</ol>
-<div class="foot" style="animation-delay:${0.35 + offered.length * 0.45}s"><span>pod ready · moved 1 provider</span><span>201</span></div>
+<div class="foot" style="animation-delay:${0.35 + offered.length * 0.45}s"><span>${s.exampleFoot}</span><span>201</span></div>
 </div>`;
 }
 
 // Three states, see providerState() in route.js. The tooltip says what is missing.
-export const statusTag = (p) => {
+export const statusTag = (p, lang = 'en') => {
   const tip =
     p.status === 'working'
       ? `Run end to end on a real ${p.label} account on ${p.tested || ''}`
       : p.status === 'blocked'
         ? p.blocker || ''
         : 'Built from the provider\'s docs and tested against fake replies. Should work; waiting for a test on a real account.';
-  return `<span class="st ${p.status === 'working' ? 'ok' : p.status}" title="${esc(tip)}">${p.status === 'working' ? '<i></i>' : ''}${esc(p.stateLabel || (p.status === 'working' ? 'Working' : 'Untested'))}</span>`;
+  return `<span class="st ${p.status === 'working' ? 'ok' : p.status}" title="${esc(tip)}">${p.status === 'working' ? '<i></i>' : ''}${esc(lang === 'nl' ? { working: 'Werkt', untested: 'Niet getest', blocked: 'Geblokkeerd' }[p.status] || p.stateLabel : p.stateLabel || (p.status === 'working' ? 'Working' : 'Untested'))}</span>`;
 };
 
 // "2 working · 5 untested · 4 blocked", leaving out a state nobody is in.
-export const stateCounts = (prices) =>
+export const stateCounts = (prices, lang = 'en') =>
   ['working', 'untested', 'blocked']
     .map((k) => [k, prices.filter((p) => p.status === k).length])
     .filter(([, n]) => n)
-    .map(([k, n]) => `${n} ${k}`)
+    .map(([k, n]) => `${n} ${STR[lang].states[k]}`)
     .join(' · ');
 
-export function homePage({ origin, prices, size }) {
+export function homePage({ origin, prices, size, lang = 'en' }) {
+  const s = STR[lang];
+  const a = (href) => (text) => `<a href="${href}">${text}</a>`;
   const working = prices.filter((p) => p.status === 'working').length;
   const more = prices.length - working;
   // Providers nobody can start today (down, card, invitation) go last and get no route slot.
@@ -280,91 +294,91 @@ export function homePage({ origin, prices, size }) {
   const ordered = [...usable, ...prices.filter((p) => p.status === 'blocked')];
   const rows = ordered
     .map((p, i) => {
-      const slot = p.status === 'blocked' || p.pricePerHour === null ? '' : i === 0 ? '<span class="first">first</span>' : i + 1;
-      return `<tr><td><span style="display:inline-flex;align-items:center;gap:10px">${logoSvg(p.provider, p.label, 22)}${esc(p.label)}</span></td><td>${statusTag(p)}</td><td class="n">${money(p.pricePerHour)}</td><td>${slot}</td><td>${esc(p.note)}</td></tr>`;
+      const slot = p.status === 'blocked' || p.pricePerHour === null ? '' : i === 0 ? `<span class="first">${s.first}</span>` : i + 1;
+      return `<tr><td><span style="display:inline-flex;align-items:center;gap:10px">${logoSvg(p.provider, p.label, 22)}${esc(p.label)}</span></td><td>${statusTag(p, lang)}</td><td class="n">${money(p.pricePerHour, lang)}</td><td>${slot}</td><td>${esc(p.note)}</td></tr>`;
     })
     .join('');
   return shell(
-    'fleet: one API for every agent pod',
+    s.title,
     `<section class="hero">
 <div class="l">
 <div>
-<a class="logo" href="/">${FLEET_MARK}fleet</a>
-<div style="margin-top:28px"><span class="pill"><i></i>Beta · ${stateCounts(prices)}</span></div>
-<h1>One key.<br>Every <em>computer<br>your agent needs.</em></h1>
-<p class="lede">Your agent asks for a computer. Fleet starts one with the cheapest provider you have an account with, and switches to the next if one fails.</p>
+<a class="logo" href="${lang === 'nl' ? '/nl' : '/'}">${FLEET_MARK}fleet</a>
+<div style="margin-top:28px"><span class="pill"><i></i>${s.pill(stateCounts(prices, lang))}</span></div>
+<h1>${s.h1}</h1>
+<p class="lede">${s.lede}</p>
 </div>
 <div>
-<div class="cmd"><code>set up ${esc(origin.replace(/^https?:\/\//, ''))}/SKILL.md</code><button type="button" data-copy="set up ${esc(origin)}/SKILL.md">Copy</button></div>
-<div class="cta-row"><a class="b inv" href="/demo">Watch agents race</a><a class="b" href="/console?section=try">Try a demo pod</a><a class="b" href="/docs">Read the docs</a></div>
-<p class="note" style="margin-top:12px">Give that line to your agent and it sets itself up. The demo pod needs a GitHub sign-in and no provider account.</p>
+<div class="cmd"><code>set up ${esc(origin.replace(/^https?:\/\//, ''))}/SKILL.md</code><button type="button" data-copy="set up ${esc(origin)}/SKILL.md">${s.copy}</button></div>
+<div class="cta-row"><a class="b inv" href="/demo">${s.ctaRace}</a><a class="b" href="/console?section=try">${s.ctaTry}</a><a class="b" href="/docs">${s.ctaDocs}</a></div>
+<p class="note" style="margin-top:12px">${s.heroNote}</p>
 </div>
 </div>
-${laneArt(prices)}
+${laneArt(prices, lang)}
 </section>
 
 <div class="steps">
-<div><span class="m">01 / Sign in</span><b>Get a fleet key</b><span>With GitHub, in the cabinet. <a href="/console?section=keys">Get your key &gt;&gt;&gt;</a></span></div>
-<div><span class="m">02 / Connect</span><b>Your own provider</b><span><a href="/console?section=providers">Connect one</a>: paste a ${esc(prices.filter((p) => p.status === 'working').map((p) => p.label).join(' or '))} key once. ${more} more are built and waiting for tests.</span></div>
-<div><span class="m">03 / Start a pod</span><b>One call</b><span>POST /v1/pods, or pod_create over MCP.</span></div>
-<div><span class="m">04 / Run, then stop</span><b>Stdout and exit code</b><span>A pod that's gone answers 410.</span></div>
+<div><span class="m">${s.s1k}</span><b>${s.s1b}</b><span>${s.s1t((t) => `<a href="/console?section=keys">${t.replace(/>/g, '&gt;')}</a>`)}</span></div>
+<div><span class="m">${s.s2k}</span><b>${s.s2b}</b><span>${s.s2t(a('/console?section=providers'), esc(prices.filter((p) => p.status === 'working').map((p) => p.label).join(lang === 'nl' ? ' of ' : ' or ')), more)}</span></div>
+<div><span class="m">${s.s3k}</span><b>${s.s3b}</b><span>${s.s3t}</span></div>
+<div><span class="m">${s.s4k}</span><b>${s.s4b}</b><span>${s.s4t}</span></div>
 </div>
 
 <section class="sec two">
 <div>
-<p class="m label">How a pod is routed</p>
-<h2>Cheapest first. Next one when it fails.</h2>
-<p class="lede" style="font-size:16px">Fleet sorts the providers you sent a key for by list price for the size you ask for, tries them in that order, and tells you which ones it skipped and why.</p>
+<p class="m label">${s.routeLabel}</p>
+<h2>${s.routeH2}</h2>
+<p class="lede" style="font-size:16px">${s.routeLede}</p>
 <pre style="margin-top:22px">curl -X POST ${esc(origin)}/v1/pods \\
   -H "Authorization: Bearer fleet_..." \\
   -H "X-E2B-Key: ..." -H "X-Daytona-Key: ..." \\
   -d '{"cpu":2,"ram":4}'</pre>
 </div>
-${routeExample(prices)}
+${routeExample(prices, lang)}
 </section>
 
 <div class="feat">
-<div><b>Cheapest first</b><span>Sorted by each provider's list price for your size.</span></div>
-<div><b>Next one on failure</b><span>An error or no capacity moves the pod to the next provider.</span></div>
-<div><b>Connect once</b><span>Paste each provider key one time; fleet keeps it encrypted. Your agent sends only its fleet key.</span></div>
+<div><b>${s.f1b}</b><span>${s.f1t}</span></div>
+<div><b>${s.f2b}</b><span>${s.f2t}</span></div>
+<div><b>${s.f3b}</b><span>${s.f3t}</span></div>
 </div>
 
 <section class="sec sponsor" id="sponsor">
-<p><b>fleet is free and MIT.</b> On 12 Nov 2026 it started 10 real Daytona pods at once in about 6 seconds. Sponsors pay for the hosting behind the free tier: $5 a month supporter, $20 builder (your issues first), $100 team (your company in fleet's README).</p>
-<a class="b inv" href="https://github.com/sponsors/flisk-sh">Sponsor fleet on GitHub</a>
+<p>${s.sponsor}</p>
+<a class="b inv" href="https://github.com/sponsors/flisk-sh">${s.sponsorCta}</a>
 </section>
 
 <section class="sec" id="prices">
-<p class="m label">Prices · ${size.cpu} vCPU · ${size.ram} GB · per hour</p>
-<h2>Today's route order</h2>
+<p class="m label">${s.pricesLabel(size.cpu, size.ram)}</p>
+<h2>${s.pricesH2}</h2>
 <div class="scroll"><table>
-<tr><th>Provider</th><th>Status</th><th>List price</th><th>Route</th><th>Note</th></tr>
+<tr><th>${s.thProvider}</th><th>${s.thStatus}</th><th>${s.thPrice}</th><th>${s.thRoute}</th><th>${s.thNote}</th></tr>
 ${rows}
 </table></div>
-<p class="note">List prices from each provider's own page. You pay the provider directly on your own account; fleet adds nothing. <b>Working</b> means fleet has run pods end to end on a real account of that provider. <b>Untested</b> providers are built from their public docs and pass tests against fake replies, so they should work; they wait for a test on a real account. <b>Blocked</b> ones cannot be tested yet, and the tag says why (provider down, needs a card, invitation only). Have an account at one? <a href="https://github.com/flisk-sh/fleet/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22">Help us test them</a>.</p>
+<p class="note">${s.pricesNote(a('https://github.com/flisk-sh/fleet/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22'))}</p>
 </section>
 
 <section class="sec" id="api">
-<p class="m label">API</p>
-<h2>Start, run, files, stop</h2>
+<p class="m label">${s.apiLabel}</p>
+<h2>${s.apiH2}</h2>
 <div class="scroll"><table>
-<tr><th>Call</th><th>Body</th><th>Returns</th></tr>
+<tr><th>${s.thCall}</th><th>${s.thBody}</th><th>${s.thReturns}</th></tr>
 <tr><td class="n">POST /v1/pods</td><td>cpu, ram, provider?, order?</td><td>id, provider, pricePerHour, failed</td></tr>
 <tr><td class="n">POST /v1/pods/:id/run</td><td>command, cwd?, env?, timeout?</td><td>stdout, stderr, exitCode, timedOut</td></tr>
 <tr><td class="n">PUT /v1/pods/:id/files</td><td>path, content, encoding?</td><td>path, bytes</td></tr>
 <tr><td class="n">GET /v1/pods/:id/files?path=</td><td></td><td>content, encoding, bytes</td></tr>
-<tr><td class="n">GET /v1/pods</td><td></td><td>your pods with status</td></tr>
-<tr><td class="n">DELETE /v1/pods/:id</td><td></td><td>stopped</td></tr>
-<tr><td class="n">GET /v1/prices</td><td></td><td>price table, no key needed</td></tr>
+<tr><td class="n">GET /v1/pods</td><td></td><td>${s.apiReturnsList}</td></tr>
+<tr><td class="n">DELETE /v1/pods/:id</td><td></td><td>${s.apiReturnsStop}</td></tr>
+<tr><td class="n">GET /v1/prices</td><td></td><td>${s.apiReturnsPrices}</td></tr>
 </table></div>
-<p class="note">Send your fleet key as a Bearer token, and one header per provider you hold an account at: ${esc(prices.map((p) => p.keyHeader).filter(Boolean).join(', '))}.</p>
+<p class="note">${s.apiNote(esc(prices.map((p) => p.keyHeader).filter(Boolean).join(', ')))}</p>
 </section>
 
 <section class="sec two" id="mcp">
 <div>
-<p class="m label">MCP</p>
-<h2>Give it to your agent</h2>
-<p class="lede" style="font-size:16px">Add fleet to Claude Code or Cursor. Your agent gets six tools: pod_create, pod_run, pod_write_file, pod_read_file, pod_list, pod_stop.</p>
+<p class="m label">${s.mcpLabel}</p>
+<h2>${s.mcpH2}</h2>
+<p class="lede" style="font-size:16px">${s.mcpLede}</p>
 </div>
 <pre>{ "mcpServers": { "fleet": {
     "type": "http",
@@ -373,7 +387,7 @@ ${rows}
 } } }</pre>
 </section>`,
     '',
-    { path: '/', jsonLd: jsonLd() },
+    { path: lang === 'nl' ? '/nl' : '/', lang, title: s.title, description: s.description, jsonLd: jsonLd(lang) },
   );
 }
 

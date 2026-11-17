@@ -4,6 +4,7 @@ import { createPod, publicUrl, readFile, runPod, stopPod, priceTable, writeFile,
 import { handleMcp } from './mcp.js';
 import { bearer, githubAuthorizeUrl, githubLogin } from './auth.js';
 import { esc, homePage, messagePage, shell } from './page.js';
+import { LANGS, langCookie, pickLang } from './i18n.js';
 import { docsPage, skillMd, DOCS_CSS } from './docs.js';
 import { pricingPage, PRICING_CSS } from './pricing.js';
 import { measured, podlyticsData, podlyticsPage } from './podlytics.js';
@@ -191,8 +192,14 @@ async function handleCore(request, env = {}, opts = {}) {
   const path = url.pathname.replace(/\/+$/, '') || '/';
   const origin = env.PUBLIC_ORIGIN || url.origin;
 
-  if (request.method === 'GET' && path === '/') {
-    return html(homePage({ origin, prices: priceTable(providers), size: DEFAULT_SIZE }), 200, { 'cache-control': 'public, max-age=300' });
+  // The home page speaks the visitor's language: ?lang= (the switcher, which also remembers it in a cookie), then that
+  // cookie, then Accept-Language. /nl is always Dutch so it can be linked and indexed. Responses vary on both headers.
+  if (request.method === 'GET' && (path === '/' || path === '/nl')) {
+    const lang = path === '/nl' ? 'nl' : pickLang(request);
+    const asked = LANGS.includes(url.searchParams.get('lang')) ? url.searchParams.get('lang') : null;
+    const headers = { 'cache-control': 'public, max-age=300', vary: 'Accept-Language, Cookie', 'content-language': lang };
+    if (asked || path === '/nl') Object.assign(headers, { 'set-cookie': langCookie(lang), 'cache-control': 'private, max-age=300' });
+    return html(homePage({ origin, prices: priceTable(providers), size: DEFAULT_SIZE, lang }), 200, headers);
   }
   if (request.method === 'GET' && path === '/robots.txt') {
     return new Response(robotsTxt(), { headers: { 'content-type': 'text/plain', 'cache-control': 'public, max-age=3600' } });

@@ -149,6 +149,7 @@ export const topbar = ({ name, mark, nav, cta, sw = [], current = '', lang = 'en
   `<div class="top m"><a class="brand" href="${lang === 'nl' ? '/nl' : '/'}" aria-label="${esc(name)} ${STR[lang].homeAria}"><span class="tile">${mark}</span><b>${esc(name)}</b></a>` +
   (sw.length ? `<div class="swp"><span aria-label="${esc(STR[lang].switchAria)}">${sw.map(([href, label, on]) => `<a${on ? ' class="on" aria-current="true"' : ''} href="${esc(href)}"><i></i>${esc(label)}</a>`).join('')}</span></div>` : '') +
   `<nav aria-label="${esc(name)}">${nav.map(([href, label, cls = '']) => `<a${cls ? ` class="${cls}"` : ''} href="${esc(href)}"${href === current ? ' aria-current="page"' : ''}>${esc(label)}</a>`).join('')}</nav>` +
+  `<span data-flisk-login hidden></span>` +
   `<a class="cta" href="${esc(cta[0])}">${esc(cta[1])} <i aria-hidden="true">→</i></a></div>`;
 // The product switch: fleet, its podlytics page and host (free places to run a fleet pod). Same on all three pages.
 export const fleetSwitch = (lang = 'en') => [

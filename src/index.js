@@ -153,7 +153,7 @@ async function tryPod(request, env, login, providers, fetchImpl, waitUntil = nul
 const BROWSER_ORIGINS = new Set(['https://practice.flisk.si']);
 const corsPath = (path) => path === '/v1/pods' || path.startsWith('/v1/pods/');
 
-export async function handle(request, env = {}, opts = {}) {
+async function route(request, env = {}, opts = {}) {
   const origin = request.headers.get('origin') || '';
   const path = new URL(request.url).pathname.replace(/\/+$/, '');
   if (!BROWSER_ORIGINS.has(origin) || !corsPath(path)) return handleCore(request, env, opts);
@@ -434,6 +434,22 @@ async function handleCore(request, env = {}, opts = {}) {
     if (!m[2] && request.method === 'DELETE') return out(await stopPod(providers, keys, id, ctx));
   }
   return json(404, { error: 'no such API route' });
+}
+
+// The second-level header carries an empty [data-flisk-login] element; for a signed-in visitor it is filled with the login, so the
+// org bar's profile icon can read it. Those responses are per-visitor, so they are private and never cached. Signed-out pages are untouched.
+const LOGIN_HOOK = '<span data-flisk-login hidden></span>';
+export async function handle(request, env = {}, opts = {}) {
+  const res = await route(request, env, opts);
+  if (request.method !== 'GET' || !/_sess=/.test(request.headers.get('cookie') || '') || !(res.headers.get('content-type') || '').startsWith('text/html')) return res;
+  const login = (await readSession(env, request))?.login;
+  if (!login) return res;
+  const body = await res.text();
+  if (!body.includes(LOGIN_HOOK)) return new Response(body, res);
+  const out = new Response(body.replace(LOGIN_HOOK, `<span data-flisk-login hidden>${esc(login)}</span>`), res);
+  out.headers.set('cache-control', 'private, no-store');
+  out.headers.append('vary', 'Cookie');
+  return out;
 }
 
 export default {

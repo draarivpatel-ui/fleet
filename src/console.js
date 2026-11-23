@@ -141,7 +141,7 @@ ${FONTS}
 <aside class="side">
 <a class="logo" href="/">${FLEET_MARK}fleet</a>
 ${nav}
-<div class="me"><span>@${esc(login)}</span><form method="post" action="/auth/signout"><button class="b" type="submit">Sign out</button></form></div>
+<div class="me"><span data-flisk-login>@${esc(login)}</span><form method="post" action="/auth/signout"><button class="b" type="submit">Sign out</button></form></div>
 </aside>
 <main class="main" id="main">
 <div class="ctop"><h1>${esc(title)} <span class="pill"><i></i>Beta</span></h1><a class="b" href="/">Home</a></div>

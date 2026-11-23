@@ -2,7 +2,7 @@
 // Prices come from the provider adapters (each provider's own price page). Speed and success come from fleet's own
 // usage log (the calls table), summed over every account for the last 30 days. No login or pod id leaves the server.
 import { logoSvg } from './logos.js';
-import { esc, FLEET_MARK, FLISK_BAR } from './page.js';
+import { esc, FLISK_BAR } from './page.js';
 import { headTags, PAGES, SKIP_CSS, SKIP_LINK } from './seo.js';
 import { REFERENCE, REFERENCE_TIERS, scenarios } from './reference.js';
 
@@ -650,7 +650,7 @@ ${PL_FONTS}
 ${SKIP_LINK}
 ${FLISK_BAR}
 <header class="hd">
-<a class="brand" href="/" title="fleet">${FLEET_MARK}<span>fleet</span></a>
+<a class="brand" href="/" title="fleet"><span>fleet</span></a>
 <nav class="sw" aria-label="Fleet products"><a href="/"><i></i>fleet</a><a class="on" href="/podlytics" aria-current="page"><i></i>podlytics</a><a href="https://host.flisk.si"><i></i>host</a></nav>
 <nav class="tabs" aria-label="Charts">${CHARTS.map(([id, l]) => (id === '|' ? '<span class="sep"></span>' : `<a href="?chart=${id}" data-c="${id}"${id === 'size' ? ' class="on"' : ''}>${esc(l)}</a>`)).join('')}</nav>
 <button type="button" class="tabnext" id="tabnext" aria-label="Show more charts" title="More charts" hidden>›</button>

@@ -35,8 +35,7 @@ a{color:inherit}
 .top::before,.top::after{content:'';position:absolute;bottom:-4px;width:7px;height:7px;border-radius:50%;background:var(--ink)}
 .top::before{left:-4px}.top::after{right:-4px}
 @media (max-width:1250px){.top::before,.top::after{display:none}}
-.top .brand{display:flex;align-items:center;gap:11px;padding:0 20px;text-decoration:none;border-right:1px solid var(--ink);font:800 23px/1 var(--serif);letter-spacing:-.015em;text-transform:none}
-.top .tile{display:grid;place-items:center;width:34px;height:34px;flex-shrink:0}.top .tile .mark{width:34px;height:34px;background:none}
+.top .brand{display:flex;align-items:center;padding:0 20px;text-decoration:none;border-right:1px solid var(--ink);font:800 23px/1 var(--serif);letter-spacing:-.015em;text-transform:none}
 .top .swp{display:flex;align-items:center;padding:0 14px;border-right:1px solid var(--ink)}
 .swp span{display:inline-flex;border:1px solid var(--ink);padding:3px;gap:3px;background:var(--card)}
 .swp a{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;text-decoration:none;color:var(--dim);transition:background .15s,color .15s}
@@ -143,10 +142,10 @@ export const FLISK_BAR = '<script src="https://flisk.si/assets/bar.js" data-prod
 const COPY_JS = `<script>document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>navigator.clipboard.writeText(b.dataset.copy).then(()=>{b.textContent='Copied';setTimeout(()=>{b.textContent='Copy'},1500)})))</script>`;
 
 
-// The standard second-level header shared by the Flisk product sites (fleet, host): brand tile + name on the left,
+// The standard second-level header shared by the Flisk product sites (fleet, host): brand name (wordmark only, the org bar above carries the icon) on the left,
 // mono nav on the right, green call-to-action. nav items: [href, label, extra class]. Keep in step with flisk-sh/host src/page.js.
-export const topbar = ({ name, mark, nav, cta, sw = [], current = '', lang = 'en' }) =>
-  `<div class="top m"><a class="brand" href="${lang === 'nl' ? '/nl' : '/'}" aria-label="${esc(name)} ${STR[lang].homeAria}"><span class="tile">${mark}</span><b>${esc(name)}</b></a>` +
+export const topbar = ({ name, nav, cta, sw = [], current = '', lang = 'en' }) =>
+  `<div class="top m"><a class="brand" href="${lang === 'nl' ? '/nl' : '/'}" aria-label="${esc(name)} ${STR[lang].homeAria}"><b>${esc(name)}</b></a>` +
   (sw.length ? `<div class="swp"><span aria-label="${esc(STR[lang].switchAria)}">${sw.map(([href, label, on]) => `<a${on ? ' class="on" aria-current="true"' : ''} href="${esc(href)}"><i></i>${esc(label)}</a>`).join('')}</span></div>` : '') +
   `<nav aria-label="${esc(name)}">${nav.map(([href, label, cls = '']) => `<a${cls ? ` class="${cls}"` : ''} href="${esc(href)}"${href === current ? ' aria-current="page"' : ''}>${esc(label)}</a>`).join('')}</nav>` +
   `<span data-flisk-login hidden></span>` +
@@ -195,7 +194,7 @@ ${FONTS}
 ${SKIP_LINK.replace('Skip to content', s.skip)}
 ${FLISK_BAR}
 <div class="frame">
-${topbar({ name: 'Fleet', mark: FLEET_MARK, current: meta?.path, nav: fleetNav(lang), sw: fleetSwitch(lang), cta: ['/console', 'Console'], lang })}
+${topbar({ name: 'Fleet', current: meta?.path, nav: fleetNav(lang), sw: fleetSwitch(lang), cta: ['/console', 'Console'], lang })}
 <main id="main">${body}</main>
 <footer>
 <div class="foot-grid">

@@ -296,6 +296,8 @@ export const stateCounts = (prices, lang = 'en') =>
 // The standard free-key button: GitHub sign-in (extra params are ignored by /auth/start), back to the keys page. utm_* are read by analytics.flisk.si.
 const KEY_CTA = '/auth/start?next=' + encodeURIComponent('/console?section=keys') + '&utm_source=fleet&utm_medium=cta&utm_campaign=free-key';
 
+const KEY_TEXT = { en: ['Get a free API key', 'No card. Sign in with GitHub.'], nl: ['Haal een gratis API-sleutel op', 'Geen kaart. Log in met GitHub.'] };
+
 export function homePage({ origin, prices, size, lang = 'en' }) {
   const s = STR[lang];
   const a = (href) => (text) => `<a href="${href}">${text}</a>`;
@@ -321,8 +323,8 @@ export function homePage({ origin, prices, size, lang = 'en' }) {
 <p class="lede">${s.lede}</p>
 </div>
 <div>
-<div class="cta-row"><a class="b inv" href="${KEY_CTA}">${s.ctaKey}</a><a class="b" href="/demo">${s.ctaRace}</a></div>
-<p class="note" style="margin-top:12px">${s.ctaProof}</p>
+<div class="cta-row"><a class="b inv" href="${KEY_CTA}">${KEY_TEXT[lang][0]}</a><a class="b" href="/demo">${s.ctaRace}</a></div>
+<p class="note" style="margin-top:12px">${KEY_TEXT[lang][1]}</p>
 <div class="cmd" style="margin-top:22px"><code>set up ${esc(origin.replace(/^https?:\/\//, ''))}/SKILL.md</code><button type="button" data-copy="set up ${esc(origin)}/SKILL.md">${s.copy}</button></div>
 <p class="note">${s.heroNote} <a href="/docs">${s.ctaDocs}</a></p>
 </div>

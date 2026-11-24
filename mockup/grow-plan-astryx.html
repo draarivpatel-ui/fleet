@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mock: Grow plan page in Astryx (Meta) UI</title>
+<style>
+:root{
+  --bg:#f5f5f6;--surface:#fff;--surface-2:#f0f0f2;--text:#0b0b0d;--muted:#65676b;--border:#e1e2e5;
+  --primary:#0866ff;--primary-ink:#fff;--primary-soft:#e7f0ff;--ok:#0b7a3b;--ok-soft:#e3f5ea;--warn:#8a5a00;--warn-soft:#fff3d6;--bad:#b3261e;--bad-soft:#fde8e6;
+  --radius:12px;--radius-sm:8px;--shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.02);
+  font-family:Inter,-apple-system,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{--bg:#0b0b0c;--surface:#151517;--surface-2:#1e1e21;--text:#ededee;--muted:#a0a2a8;--border:#2a2a2e;--primary:#4d94ff;--primary-ink:#06142e;--primary-soft:#14233f;--ok:#5fd18a;--ok-soft:#10261a;--warn:#f0b84a;--warn-soft:#2b2210;--bad:#ff8a80;--bad-soft:#2d1514;--shadow:0 0 0 1px rgba(255,255,255,.03)}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.shell{display:grid;grid-template-columns:240px 1fr;grid-template-rows:56px 1fr;min-height:100vh}
+.header{grid-column:1/3;display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
+.logo i{width:24px;height:24px;border-radius:50%;background:var(--primary);display:grid;place-items:center;color:var(--primary-ink);font-style:normal;font-size:13px}
+.crumb{color:var(--muted);display:flex;gap:6px;align-items:center}
+.sp{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.sm{height:28px;padding:0 11px;font-size:13px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-weight:700;font-size:12px;border:1px solid var(--border)}
+.nav{padding:12px 8px;border-right:1px solid var(--border);background:var(--surface);overflow:auto}
+.nav h6{margin:14px 12px 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.nav a{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius-sm);color:var(--text);font-weight:500}
+.nav a:hover{background:var(--surface-2)}
+.nav a.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.nav .dot{width:18px;text-align:center}
+.nav .cnt{margin-left:auto;color:var(--muted);font-size:12px}
+.main{padding:24px 32px 64px;overflow:auto}
+.wrap{max-width:980px;margin:0 auto}
+.title{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.title h1{font-size:26px;line-height:1.15;margin:0 0 6px;letter-spacing:-.01em}
+.title p{margin:0;color:var(--muted);max-width:62ch}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 0}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;background:var(--surface-2);font-size:12px;font-weight:600;color:var(--muted)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}.chip.warn{background:var(--warn-soft);color:var(--warn)}.chip.bad{background:var(--bad-soft);color:var(--bad)}.chip.blue{background:var(--primary-soft);color:var(--primary)}
+.tabs{display:inline-flex;padding:3px;gap:2px;border-radius:999px;background:var(--surface-2);margin:22px 0 18px;overflow:auto;max-width:100%}
+.tabs button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;height:30px;padding:0 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.tabs button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:16px}
+.card>h2{font-size:16px;margin:0 0 2px}
+.card>.sub{margin:0 0 14px;color:var(--muted)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.cell{display:block;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;background:var(--surface)}
+a.cell:hover{background:var(--surface-2)}
+.cell h3{margin:0 0 3px;font-size:14px;display:flex;align-items:center;gap:8px}
+.cell p{margin:0;color:var(--muted);font-size:13px}
+.fav{width:18px;height:18px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);display:inline-grid;place-items:center;font-size:10px;font-weight:700;color:var(--muted);flex:none}
+.pitch{font-size:18px;font-weight:600;line-height:1.3;margin:0}
+.callout{margin-top:12px;border-radius:var(--radius-sm);padding:12px 14px;background:var(--primary-soft);color:var(--text);border:1px solid color-mix(in srgb,var(--primary) 30%,transparent)}
+.callout small{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--primary);margin-bottom:2px}
+.score{display:flex;align-items:center;gap:16px}
+.ring{--p:5;width:92px;height:92px;border-radius:50%;background:conic-gradient(var(--bad) calc(var(--p)*1%),var(--surface-2) 0);display:grid;place-items:center;flex:none}
+.ring b{width:72px;height:72px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:24px}
+.ring b span{font-size:11px;color:var(--muted);font-weight:500;display:block;text-align:center;margin-top:-4px}
+.fix{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--border)}.fix:first-child{border-top:0;padding-top:0}
+.fix .st{flex:none;margin-top:2px}
+.fix b{display:block;font-size:13.5px}.fix p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.mail .to{font-size:12px;color:var(--muted);margin-bottom:6px}
+.mail h3{margin:0 0 8px;font-size:14.5px}
+.mail pre{margin:0 0 12px;white-space:pre-wrap;font:inherit;font-size:13px;color:var(--text);background:var(--surface-2);border-radius:var(--radius-sm);padding:10px 12px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.gap{display:flex;gap:16px;align-items:center;flex-wrap:wrap;border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-top:16px}
+.gap h3{margin:0 0 2px;font-size:14px}.gap p{margin:0;color:var(--muted);font-size:13px;max-width:56ch}
+.note{margin-top:14px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--warn-soft);color:var(--warn);font-size:13px}
+.banner{margin:0 0 18px;padding:10px 14px;border-radius:var(--radius-sm);background:var(--surface-2);color:var(--muted);font-size:12.5px;border:1px dashed var(--border)}
+.bar{display:none}
+@media (max-width:820px){
+  .shell{grid-template-columns:1fr}.nav{display:none}.header{grid-column:1}
+  .main{padding:16px 14px 80px}.cols,.grid{grid-template-columns:1fr}.crumb{display:none}
+  .title h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="header">
+    <a class="logo" href="#"><i>G</i>Flisk Grow</a>
+    <span class="crumb">/ Plans / <b style="color:var(--text)">grow.flisk.si</b></span>
+    <span class="sp"></span>
+    <a class="btn ghost sm" href="#">Docs</a>
+    <a class="btn sm" href="#">Sign in</a>
+    <span class="avatar">AD</span>
+  </header>
+
+  <nav class="nav">
+    <h6>Workspace</h6>
+    <a href="#"><span class="dot">＋</span>New plan</a>
+    <a class="on" href="#"><span class="dot">▤</span>This plan</a>
+    <a href="#"><span class="dot">⌂</span>My cabinet<span class="cnt">3</span></a>
+    <h6>This plan</h6>
+    <a href="#"><span class="dot">⚑</span>AI search check</a>
+    <a href="#"><span class="dot">☺</span>Who would buy it</a>
+    <a href="#"><span class="dot">⌖</span>Where to find them</a>
+    <a href="#"><span class="dot">✉</span>Emails<span class="cnt">5</span></a>
+    <a href="#"><span class="dot">✎</span>Posts<span class="cnt">4</span></a>
+    <a href="#"><span class="dot">☰</span>Where to list it<span class="cnt">12</span></a>
+    <h6>Kept 30 days</h6>
+    <a href="#"><span class="dot">⧉</span>Copy plan link</a>
+  </nav>
+
+  <main class="main"><div class="wrap">
+    <div class="banner">Mock. The live plan <code>/p/9ec40314ba0ev</code> now answers 404 (plans are kept 30 days), so this uses the example plan Grow made for its own repo. Same sections, same data, Astryx look.</div>
+
+    <div class="title">
+      <div style="flex:1;min-width:260px">
+        <h1>A plan for grow.flisk.si</h1>
+        <p>A tool that generates a plan to find the first customers for a product, by pasting a link to the product on its website.</p>
+        <div class="chips"><span class="chip blue">Kept 30 days</span><span class="chip">Nothing is posted for you</span><span class="chip bad">AI search 5/100</span></div>
+      </div>
+      <div class="acts">
+        <button class="btn primary">Save to my cabinet</button>
+        <button class="btn">Copy link</button>
+        <a class="btn" href="#">Open the site ↗</a>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="on">Overview</button><button>Emails 5</button><button>Posts 4</button><button>Listings 12</button>
+    </div>
+
+    <section class="card">
+      <h2>Get the gaps done</h2>
+      <p class="sub">A bot runs the checks on jobs.flisk.si: can AI search find your site, and how good is your README. About 5 minutes. Free and public.</p>
+      <div class="gap"><div style="flex:1;min-width:220px"><h3>Post as jobs on jobs.flisk.si</h3><p>Creates one public job per gap. You can delete them any time.</p></div><button class="btn primary">Post as jobs</button></div>
+    </section>
+
+    <section class="card">
+      <h2>Can AI search find it</h2>
+      <p class="sub">ChatGPT, Claude and Perplexity answer from pages they can read. Citable checks yours.</p>
+      <div class="cols">
+        <div class="score"><div class="ring" style="--p:5"><b>5<span>/100 · F</span></b></div><div><b>Not readable yet</b><p style="margin:2px 0 10px;color:var(--muted);font-size:13px">3 things stop AI search.</p><a class="btn sm" href="#">Full report on Citable ↗</a></div></div>
+        <div>
+          <div class="fix"><span class="chip bad st">Fail</span><div><b>AI answer engines can crawl the page</b><p>robots.txt answered 522. Crawlers treat an unreadable robots.txt as “keep out”.</p></div></div>
+          <div class="fix"><span class="chip bad st">Fail</span><div><b>The page can be indexed and quoted</b><p>The page answered 522. Crawlers keep only pages that answer 200.</p></div></div>
+          <div class="fix"><span class="chip warn st">Warn</span><div><b>Sitemap</b><p>No sitemap at /sitemap.xml.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Who would buy it</h2>
+      <div class="cols" style="margin-top:10px">
+        <p class="pitch">Get a personalized plan to find your first customers with just a link to your product.</p>
+        <div><p style="margin:0">Product managers at small startups who are struggling to find their first customers and need a simple, free tool to help them create a customer acquisition strategy.</p>
+        <div class="callout"><small>Do this today</small>Send the first two emails below to solo developers who launched a repo this month, then post on X.</div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Where to find them</h2>
+      <p class="sub">Places these buyers already talk. Read the rules of each place before you post.</p>
+      <div class="grid">
+        <a class="cell" href="#"><h3><span class="fav">R</span>Reddit · r/startups</h3><p>A community of startup founders and product managers.</p></a>
+        <a class="cell" href="#"><h3><span class="fav">R</span>Reddit · r/productmanagement</h3><p>A community of product managers.</p></a>
+        <a class="cell" href="#"><h3><span class="fav">P</span>Product Hunt</h3><p>A platform for new product launches.</p></a>
+        <a class="cell" href="#"><h3><span class="fav">S</span>Stack Overflow</h3><p>A Q&amp;A platform for developers and product managers.</p></a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Emails to send <span class="chip" style="margin-left:6px">5</span></h2>
+      <p class="sub">Drafts only. Add the address in your mail and press Send yourself: nothing is sent for you.</p>
+      <div class="grid">
+        <div class="cell mail"><div class="to">To: solo developers with under 50 stars</div><h3>Get first customers for your GitHub project</h3><pre>I saw your project on GitHub and noticed it has only 26 stars. I made a tool that helps creators like you find their first customers. It's free, no sign-in…</pre><div class="acts"><a class="btn primary sm" href="#">Open in Gmail</a><a class="btn sm" href="#">Mail app</a><button class="btn sm">Copy</button></div></div>
+        <div class="cell mail"><div class="to">To: product managers at small startups</div><h3>Find your first customers with Grow</h3><pre>I saw your post on Reddit about getting your first users. I made a tool that helps product managers like you find their first customers…</pre><div class="acts"><a class="btn primary sm" href="#">Open in Gmail</a><a class="btn sm" href="#">Mail app</a><button class="btn sm">Copy</button></div></div>
+      </div>
+      <div style="margin-top:12px"><button class="btn ghost sm">Show 3 more ▾</button></div>
+    </section>
+
+    <section class="card">
+      <h2>Posts to write <span class="chip" style="margin-left:6px">4</span></h2>
+      <p class="sub">Opens the post box with the text filled in. You read it, change it and post it yourself.</p>
+      <div class="grid">
+        <div class="cell mail"><div class="to">X</div><h3>Finding the first customers for my product</h3><pre>I built Grow, a tool that generates a plan to find the first customers for a product…</pre><div class="acts"><a class="btn primary sm" href="#">Open in X</a><button class="btn sm">Copy</button></div></div>
+        <div class="cell mail"><div class="to">Hacker News</div><h3>Grow: A tool to find the first customers for your product</h3><pre>I built Grow, a simple web app that takes a link to your product and generates a plan…</pre><div class="acts"><a class="btn primary sm" href="#">Open in Hacker News</a><button class="btn sm">Copy</button></div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Where to list it</h2>
+      <p class="sub">Directories and launch lists. Each one links to its own submit page.</p>
+      <div class="grid">
+        <a class="cell" href="#"><h3><span class="fav">P</span>Product Hunt</h3><p>A launch day with a page people can upvote and comment on.</p></a>
+        <a class="cell" href="#"><h3><span class="fav">S</span>SaaSHub</h3><p>A software directory people search for alternatives.</p></a>
+        <a class="cell" href="#"><h3><span class="fav">A</span>AlternativeTo</h3><p>Shows up when people look for an alternative to a known app.</p></a>
+        <a class="cell" href="#"><h3><span class="fav">B</span>BetaList</h3><p>Early adopters who sign up for new products.</p></a>
+      </div>
+    </section>
+  </div></main>
+</div>
+</body>
+</html>

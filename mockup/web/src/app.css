@@ -1,0 +1,15 @@
+html,body,#root{height:100%;margin:0}
+body{overflow:hidden}
+#root{display:flex;flex-direction:column}
+#root>*{flex:1;min-height:0}
+.page{max-width:980px;margin:0 auto;padding:var(--spacing-5,24px) var(--spacing-4,16px) 64px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.cols,.grid{grid-template-columns:1fr}}
+.pre{white-space:pre-wrap;font-size:13px;padding:10px 12px;border-radius:var(--radius,8px);background:var(--color-background-secondary,#8881)}
+.gap{border:1px dashed var(--color-border,#8884);border-radius:var(--radius,8px);padding:14px 16px}
+.fav{width:18px;height:18px;border-radius:50%;border:1px solid var(--color-border,#8884);display:inline-grid;place-items:center;font-size:10px;font-weight:700;flex:none}
+.brand{width:28px;height:28px;border-radius:50%;background:var(--color-background-primary,#0866ff);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.ring{width:92px;height:92px;border-radius:50%;background:conic-gradient(#d33 calc(var(--p)*1%),#8882 0);display:grid;place-items:center;flex:none}
+.ring b{width:72px;height:72px;border-radius:50%;background:var(--color-background,#fff);display:grid;place-items:center;font-size:24px;align-content:center}
+.ring small{font-size:11px;font-weight:400;opacity:.65;margin-top:-6px}

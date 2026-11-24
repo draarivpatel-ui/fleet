@@ -172,7 +172,7 @@ export function wrapCommand(command, { env, cwd, timeout } = {}) {
     if (!Number.isInteger(secs) || secs < 1 || secs > 3600) return { error: 'timeout must be a whole number of seconds from 1 to 3600' };
   }
   if (!parts.length && secs === null) return { command };
-  const inner = parts.length ? `${parts.join(' && ')} && ${command}` : command;
+  const inner = parts.length ? `${parts.join(' && ')} || exit $?; ${command}` : command;
   if (secs === null) return { command: `sh -c ${shq(inner)}`, timeout: null };
   // GNU timeout exits 124 when the command ran out of time; busybox timeout (Blaxel's image) dies from the signal, which a
   // provider reports as -1 (seen live 2026-11-12). So an outer shell turns "killed (exit above 123) after at least

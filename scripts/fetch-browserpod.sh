@@ -9,7 +9,7 @@ TAG=v0.1.0
 BASE="https://raw.githubusercontent.com/flisk-sh/linux2wasm/$TAG"
 get() { # path-in-repo local-path sha256
   mkdir -p "$(dirname "$2")"
-  curl -fsSL --retry 3 -o "$2.part" "$BASE/$1"
+  curl -fsSL --proto '=https' --retry 3 -o "$2.part" "$BASE/$1"
   echo "$3  $2.part" | shasum -a 256 -c - >/dev/null || { echo "checksum mismatch: $1" >&2; rm -f "$2.part"; exit 1; }
   mv "$2.part" "$2"
 }
@@ -24,7 +24,7 @@ cd ..
 CBASE="https://raw.githubusercontent.com/flisk-sh/cfworker2browser/v0.1.0/src"
 cget() { # name sha256
   mkdir -p cfworker2browser/src
-  curl -fsSL --retry 3 -o "cfworker2browser/src/$1.part" "$CBASE/$1"
+  curl -fsSL --proto '=https' --retry 3 -o "cfworker2browser/src/$1.part" "$CBASE/$1"
   echo "$2  cfworker2browser/src/$1.part" | shasum -a 256 -c - >/dev/null || { echo "checksum mismatch: $1" >&2; rm -f "cfworker2browser/src/$1.part"; exit 1; }
   mv "cfworker2browser/src/$1.part" "cfworker2browser/src/$1"
 }

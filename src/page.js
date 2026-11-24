@@ -61,6 +61,11 @@ a{color:inherit}
 .b.inv::after{content:' >>>'}
 .b.inv:hover{background:var(--ink);border-color:var(--ink)}
 .b:disabled{opacity:.5;cursor:wait}
+.b.next-cta{--next-cta-angle:0deg;border:2px solid transparent;background:linear-gradient(var(--green),var(--green)) padding-box,conic-gradient(from var(--next-cta-angle),#ef4444,#f59e0b,#eab308,#22c55e,#3b82f6,#8b5cf6,#ef4444) border-box;animation:next-cta-spin 3s linear infinite}
+.b.next-cta:hover{background:linear-gradient(var(--ink),var(--ink)) padding-box,conic-gradient(from var(--next-cta-angle),#ef4444,#f59e0b,#eab308,#22c55e,#3b82f6,#8b5cf6,#ef4444) border-box}
+@property --next-cta-angle{syntax:'<angle>';initial-value:0deg;inherits:false}
+@keyframes next-cta-spin{to{--next-cta-angle:360deg}}
+@media (prefers-reduced-motion:reduce){.b.next-cta{animation:none}}
 .pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--ink);padding:5px 10px;font:11px/1 var(--mono);text-transform:uppercase;letter-spacing:.06em}
 .pill i{width:7px;height:7px;border-radius:50%;background:var(--green)}
 .st{display:inline-flex;align-items:center;gap:6px;font:10.5px/1 var(--mono);text-transform:uppercase;letter-spacing:.05em;padding:4px 7px;border:1px solid var(--ink);white-space:nowrap;vertical-align:middle}
@@ -323,7 +328,7 @@ export function homePage({ origin, prices, size, lang = 'en' }) {
 <p class="lede">${s.lede}</p>
 </div>
 <div>
-<div class="cta-row"><a class="b inv" href="${KEY_CTA}">${KEY_TEXT[lang][0]}</a><a class="b" href="/demo">${s.ctaRace}</a></div>
+<div class="cta-row"><a class="b inv next-cta" data-next-cta href="${KEY_CTA}">${KEY_TEXT[lang][0]}</a><a class="b" href="/demo">${s.ctaRace}</a></div>
 <p class="note" style="margin-top:12px">${KEY_TEXT[lang][1]}</p>
 <div class="cmd" style="margin-top:22px"><code>set up ${esc(origin.replace(/^https?:\/\//, ''))}/SKILL.md</code><button type="button" data-copy="set up ${esc(origin)}/SKILL.md">${s.copy}</button></div>
 <p class="note">${s.heroNote} <a href="/docs">${s.ctaDocs}</a></p>

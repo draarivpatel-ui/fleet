@@ -30,3 +30,10 @@ describe('free-key button on the home hero', () => {
     expect(res.headers.getSetCookie().join(';')).toContain('fleet_next=%2Fconsole%3Fsection%3Dkeys');
   });
 });
+
+describe('shared bar key button', () => {
+  test('fleet opts in to the free-key pill with data-free-key', () => {
+    const html = homePage({ origin: 'https://fleet.flisk.si', prices: [], size: 'small' });
+    expect(/<script src="https:\/\/flisk\.si\/assets\/bar\.js"[^>]* data-free-key[ >]/.test(html)).toBe(true);
+  });
+});

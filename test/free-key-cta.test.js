@@ -8,7 +8,7 @@ const words = (s) => s.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).len
 describe('free-key button on the home hero', () => {
   const html = homePage({ origin: 'https://fleet.flisk.si', prices: [], size: 'small' });
   test('primary button says Get a free API key and carries the utm params', () => {
-    const m = /<a class="b inv" href="([^"]+)">Get a free API key<\/a>/.exec(html);
+    const m = /<a class="b inv[^"]*"[^>]* href="([^"]+)">Get a free API key<\/a>/.exec(html);
     expect(m).not.toBeNull();
     expect(m[1]).toContain('/auth/start?next=');
     expect(m[1]).toContain('utm_source=fleet&utm_medium=cta&utm_campaign=free-key');
@@ -23,7 +23,7 @@ describe('free-key button on the home hero', () => {
   });
   test('/auth/start ignores the utm params and keeps next', async () => {
     const env = { DB: {}, SESSION_SECRET: 'x'.repeat(40), GITHUB_CLIENT_ID: 'id', GITHUB_CLIENT_SECRET: 's' };
-    const href = /<a class="b inv" href="([^"]+)"/.exec(html)[1];
+    const href = /<a class="b inv[^"]*"[^>]* href="([^"]+)"/.exec(html)[1];
     const res = await handle(new Request(`https://fleet.test${href}`), env);
     expect(res.status).toBe(302);
     expect(res.headers.get('location')).toContain('github.com/login/oauth/authorize');

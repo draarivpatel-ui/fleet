@@ -77,6 +77,14 @@ describe('run options in a real shell', () => {
     expect(where).toMatch(/\/tmp$/);
     expect(r.result.timedOut).toBeUndefined();
   });
+  test('a failed cwd stops every statement in the command', async () => {
+    const r = await runPod(providers, keys, ID, {
+      command: 'printf first; printf second',
+      cwd: join(dir, 'missing-cwd'),
+    });
+    expect(r.result.stdout).toBe('');
+    expect(r.result.exitCode).not.toBe(0);
+  });
   test('timeout stops a long command and says so', async () => {
     const t0 = Date.now();
     const r = await runPod(providers, keys, ID, { command: 'sleep 5', timeout: 1 });

@@ -35,5 +35,5 @@ try {
   if (!snap) throw new Error('snapshot finished but was not listed');
   console.log(`\nSnapshot ${snap.id} (${name}). In fleet, set the DigitalOcean key to:\n  <your api token>@${snap.id}`);
 } finally {
-  await api('DELETE', `/droplets/${id}`).catch((e) => console.error('could not delete the build droplet, delete it by hand:', id, e.message));
+  await api('DELETE', `/droplets/${id}`).catch((e) => console.error('could not delete the build droplet, delete it by hand:', id, String(e.message).replace(/[\r\n]+/g, ' ')));
 }

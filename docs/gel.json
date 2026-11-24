@@ -23,5 +23,20 @@
     "rendered": {
       "result": "bench/next-cta-rendered.json"
     }
+  },
+  "status": "active",
+  "owner": "@odykyi",
+  "repo_health": {
+    "inherit": [
+      "CONTRIBUTING",
+      "SECURITY"
+    ]
+  },
+  "reasons": {
+    "north-star": "no measured metric yet",
+    "agent-readiness": "src/index.js routes /mcp but the server card (/.well-known/mcp-server-card.json) is a product/API surface decision (name, tools list, auth); needs the fleet maintainers, not a mechanical edit",
+    "ice-score": "docs/ice-providers.md confidence-8 rows have no linked evidence yet; scores are the maintainers' call, not lowered just to pass",
+    "worker-request-budget": "needs bench/worker-usage.json measured from the Cloudflare account (gel worker-usage --account <id>); no account id or token is available here, not inventing numbers",
+    "curl-https-only": "the scripts now pass --proto =https; the remaining hit is fleetd/Dockerfile line 3 which only apt-installs the curl package (guard false positive, reported as a GEL bug)"
   }
 }
